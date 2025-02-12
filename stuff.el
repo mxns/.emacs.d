@@ -35,9 +35,14 @@
     (condition-case err
 	(scroll-down-line scroll-amount)
       (error
-       (progn
-	 (scroll-lock-mode scroll-locked)
-	 (signal (car err) (cdr err)))))
+       (let ((err-type (car err)))
+	 (cond
+	  ((eq err-type 'beginning-of-buffer)
+	   (progn
+	     (scroll-lock-mode scroll-locked)
+	     (forward-line -1)))
+	  (t
+	   (signal (car err) (cdr err)))))))
     (scroll-lock-mode scroll-locked)))
 
 (setq confirm-kill-emacs 'y-or-n-p)
