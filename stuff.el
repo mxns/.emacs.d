@@ -46,8 +46,7 @@
     (scroll-lock-mode scroll-locked)))
 
 (setq confirm-kill-emacs 'y-or-n-p)
-(savehist-mode 1)
-(setq scroll-preserve-screen-position 1)
+(setq scroll-preserve-screen-position nil)
 (setq ns-right-option-modifier 'option)
 (setq ring-bell-function (lambda ()
                            (invert-face 'mode-line)
@@ -55,19 +54,44 @@
 
 (setq use-package-always-ensure t)
 
+(use-package vertico
+  :custom
+  ;; (vertico-scroll-margin 0) ;; Different scroll margin
+  ;; (vertico-count 20) ;; Show more candidates
+  (vertico-resize t) ;; Grow and shrink the Vertico minibuffer
+  ;; (vertico-cycle t) ;; Enable cycling for `vertico-next/previous'
+  :init
+  (vertico-mode))
+
+(use-package savehist
+  :init
+  (savehist-mode))
+
 (setq treesit-language-source-alist
       '((yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
 	(json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
 	(ruby . ("https://github.com/tree-sitter/tree-sitter-ruby" "v0.23.1"))
+	(tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2" "tsx/src"))
+	(typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2" "typescript/src"))
 	(java . ("https://github.com/tree-sitter/tree-sitter-java" "v0.23.5"))))
 (treesit-install-language-grammar 'yaml)
 (treesit-install-language-grammar 'json)
 (treesit-install-language-grammar 'java)
+(treesit-install-language-grammar 'tsx)
+(treesit-install-language-grammar 'typescript)
+
+(use-package rg
+  :ensure-system-package rg
+  :hook (grep-mode . (lambda () (setq truncate-lines t))))
+
+(use-package consult
+  :hook (completion-list-mode . consult-preview-at-point-mode))
 
 (use-package projectile
-  :init (projectile-mode))
+  :init (projectile-mode)
+  :config (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
 (setq projectile-project-search-path '("~/devel/fortifiedid/"))
-(customize-set-value 'projectile-completion-system 'ido)
+;;;(customize-set-value 'projectile-completion-system 'ido)
 (projectile-discover-projects-in-search-path)
 (setq read-file-name-completion-ignore-case t)
 
@@ -87,23 +111,27 @@
 
 (global-set-key (kbd "M-n") 'my-scroll-lock-next-line)
 (global-set-key (kbd "M-p") 'my-scroll-lock-previous-line)
+(global-set-key (kbd "M-P") 'scroll-down-line)
+(global-set-key (kbd "M-N") 'scroll-up-line)
 (global-set-key (kbd "C-c g") 'magit-status)
 (global-set-key (kbd "C-c t") 'treemacs)
-(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
-;;; (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)
+
 (add-hook 'json-ts-mode-hook
           (lambda ()
             (local-set-key (kbd "C-c C-v") 'hs-toggle-hiding)))
 
 (add-to-list 'auto-mode-alist '("\\.java\\'" . java-ts-mode))
 (add-hook 'java-mode-hook (lambda () (setq indent-tabs-mode nil)))
+(add-hook 'java-mode-hook (lambda () (setq truncate-lines t)))
 (add-hook 'java-ts-mode-hook (lambda () (setq indent-tabs-mode nil)))
+(add-hook 'java-ts-mode-hook (lambda () (setq truncate-lines t)))
 (add-hook 'java-ts-mode-hook #'hs-minor-mode)
 (add-hook 'java-ts-mode-hook #'electric-pair-mode)
 
 (add-to-list 'auto-mode-alist '("\\.json\\'" . json-ts-mode))
 (add-hook 'json-ts-mode-hook #'hs-minor-mode)
 (add-hook 'json-ts-mode-hook #'electric-pair-mode)
+(add-hook 'json-ts-mode-hook (lambda () (setq indent-tabs-mode nil)))
 (add-to-list 'auto-mode-alist '("\\.yaml\\'" . yaml-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-ts-mode))
 
@@ -111,7 +139,8 @@
 (setq lsp-java-java-path "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/bin/java")
 (setenv "JAVA_HOME"  "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/")
 (use-package lsp-mode
-  :hook ((lsp-mode . lsp-enable-which-key-integration)))
+  :hook ((lsp-mode . lsp-enable-which-key-integration))
+  :config (define-key lsp-mode-map (kbd "C-c l") lsp-command-map))
 (use-package company)
 (use-package lsp-ui)
 (use-package lsp-java
