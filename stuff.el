@@ -9,50 +9,38 @@
 (require 'use-package)
 (require 'scroll-lock)
 
+(defun fwd-scroll (amount)
+  "Forward scroll AMOUNT lines."
+  (let ((adjusted-amount
+	 (min
+	  amount
+	  (- (line-number-at-pos (point-max)) (line-number-at-pos)))))
+    (cond
+     ((<= adjusted-amount 0)
+      (message "End of buffer"))
+     ((< adjusted-amount amount)
+      (forward-line adjusted-amount))
+     (t
+      (scroll-lock-next-line amount)))))
+
+(defun bwd-scroll (amount)
+  "Backward scroll AMOUNT lines."
+  (let ((adjusted-amount
+	 (min
+	  amount
+	  (- (line-number-at-pos) 1))))
+    (cond
+     ((<= adjusted-amount 0)
+      (message "Beginning of buffer"))
+     ((= (line-number-at-pos (window-start)) 1)
+      (forward-line (- 0 amount)))
+     (t
+      (scroll-lock-next-line (- 0 adjusted-amount))))))
+
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
 (package-refresh-contents)
-
-
-(defun my-scroll-lock-next-line (scroll-amount)
-  "Scroll down SCROLL-AMOUNT lines.
-
-  Enable `scroll-lock-mode`, scroll down SCROLL-AMOUNT lines,
-  then restore `scroll-lock-mode` to original value."
-  (interactive "p")
-  (let ((scroll-locked (if scroll-lock-mode 1 -1)))
-    (scroll-lock-mode 1)
-    (condition-case err
-	(scroll-up-line scroll-amount)
-      (error
-       (progn
-	 (scroll-lock-mode scroll-locked)
-	 (signal (car err) (cdr err))))) ;;; (car err) is the error type (e.g., wrong-type-argument).
-    (scroll-lock-mode scroll-locked)))
-
-
-(defun my-scroll-lock-previous-line (scroll-amount)
-  "Scroll up SCROLL-AMOUNT lines.
-
-  Enable `scroll-lock-mode`, scroll up SCROLL-AMOUNT lines,
-  then restore `scroll-lock-mode` to original value."
-  (interactive "p")
-  (let ((scroll-locked (if scroll-lock-mode 1 -1))
-	(inner-scroll (lambda () (condition-case err (progn))))
-    (scroll-lock-mode 1)
-    (condition-case err
-	(scroll-down-line scroll-amount)
-      (error
-       (let ((err-type (car err)))
-	 (cond ((eq err-type 'beginning-of-buffer)
-		(forward-line -1))
-	       (t
-		(progn
-		  (scroll-lock-mode scroll-locked)
-		  (signal (car err) (cdr err)))))))
-      (scroll-lock-mode scroll-locked)))
-
 
 (setq confirm-kill-emacs 'y-or-n-p)
 (setq scroll-preserve-screen-position 1)
@@ -105,34 +93,6 @@
 (use-package magit)
 (use-package treemacs)
 (use-package company)
-
-(defun fwd-scroll (amount)
-  "Forward scroll AMOUNT lines."
-  (let ((adjusted-amount
-	 (min
-	  amount
-	  (- (line-number-at-pos (point-max)) (line-number-at-pos)))))
-    (cond
-     ((<= adjusted-amount 0)
-      (message "End apa of buffer"))
-     ((< adjusted-amount amount)
-      (forward-line adjusted-amount))
-     (t
-      (scroll-lock-next-line amount)))))
-
-(defun bwd-scroll (amount)
-  "Backward scroll AMOUNT lines."
-  (let ((adjusted-amount
-	 (min
-	  amount
-	  (- (line-number-at-pos) 1))))
-    (cond
-     ((<= adjusted-amount 0)
-      (message "Beginning apa of buffer"))
-     ((= (line-number-at-pos (window-start)) 1)
-      (forward-line (- 0 amount)))
-     (t
-      (scroll-lock-next-line (- 0 adjusted-amount))))))
 
 (global-set-key (kbd "M-n") (lambda (amount)
 			      (interactive "p")
