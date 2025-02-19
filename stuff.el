@@ -114,7 +114,7 @@
 	  (- (line-number-at-pos (point-max)) (line-number-at-pos)))))
     (cond
      ((<= adjusted-amount 0)
-      (message "End of buffer"))
+      (message "End apa of buffer"))
      ((< adjusted-amount amount)
       (forward-line adjusted-amount))
      (t
@@ -136,10 +136,16 @@
 
 (global-set-key (kbd "M-n") (lambda (amount)
 			      (interactive "p")
-			      (fwd-scroll amount)))
+			      (if (< amount 0)
+				  (bwd-scroll (- 0 amount))
+				(fwd-scroll amount))))
+
 (global-set-key (kbd "M-p") (lambda (amount)
 			      (interactive "p")
-			      (bwd-scroll amount)))
+			      (if (< amount 0)
+				  (fwd-scroll amount)
+				(bwd-scroll amount))))
+
 ;;;(global-set-key (kbd "M-p") (lambda () (interactive) (scroll-lock-next-line -1)))
 (global-set-key (kbd "C-c g") 'magit-status)
 (global-set-key (kbd "C-c t") 'treemacs)
