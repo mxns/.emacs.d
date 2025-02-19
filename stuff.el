@@ -35,7 +35,7 @@
      ((= (line-number-at-pos (window-start)) 1)
       (forward-line (- 0 amount)))
      (t
-      (scroll-lock-next-line (- 0 adjusted-amount))))))
+      (scroll-lock-previous-line adjusted-amount)))))
 
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
@@ -93,7 +93,8 @@
 (use-package magit)
 (use-package treemacs)
 (use-package company)
-
+(use-package undo-tree)
+(global-undo-tree-mode)
 (global-set-key (kbd "M-n") (lambda (amount)
 			      (interactive "p")
 			      (if (< amount 0)
