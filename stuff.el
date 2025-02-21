@@ -11,15 +11,17 @@
 
 (setq lexical-binding t)
 
-(defun do-while-preserving-screen-position (action)
-  "Return a function that perform ACTION while preserving screen position."
+(defun do-while-preserving-screen-position (action &optional use-arg)
+  "Return a function that perform ACTION while not preserving screen position.
+If USE-ARG is provided and ARG is present, ACTION is called with ARG.
+Otherwise, ACTION is called without arguments."
   (lambda (&optional arg)
     (interactive "p")
     (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
       (condition-case err
           (progn
             (setq scroll-preserve-screen-position 1)
-            (let ((result (if arg
+            (let ((result (if (and arg use-arg)
 			      (funcall action arg)
                             (funcall action))))
 	      (setq scroll-preserve-screen-position current-setting)
@@ -28,8 +30,10 @@
          (setq scroll-preserve-screen-position current-setting)
          (signal (car err) (cdr err)))))))
 
-(defun do-while-not-preserving-screen-position (action)
-  "Return a function that perform ACTION while not preserving screen position."
+(defun do-while-not-preserving-screen-position (action &optional use-arg)
+  "Return a function that perform ACTION while not preserving screen position.
+If USE-ARG is provided and ARG is present, ACTION is called with ARG.
+Otherwise, ACTION is called without arguments."
   (lambda (&optional arg)
     (interactive "p")
     (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
@@ -46,8 +50,8 @@
          (signal (car err) (cdr err)))))))
 
 
-(global-set-key (kbd "M-n") (do-while-preserving-screen-position #'scroll-lock-next-line))
-(global-set-key (kbd "M-p") (do-while-preserving-screen-position #'scroll-lock-previous-line))
+(global-set-key (kbd "M-n") (do-while-preserving-screen-position #'scroll-lock-next-line t))
+(global-set-key (kbd "M-p") (do-while-preserving-screen-position #'scroll-lock-previous-line t))
 (global-set-key (kbd "M-N") (do-while-not-preserving-screen-position #'scroll-lock-next-line))
 (global-set-key (kbd "M-P") (do-while-not-preserving-screen-position #'scroll-lock-previous-line))
 (global-set-key (kbd "C-v") (do-while-preserving-screen-position #'scroll-up-command))
