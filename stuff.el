@@ -69,21 +69,31 @@
 				  (scroll-lock-previous-line amount)
 				  (setq scroll-preserve-screen-position current-setting)))))
 
-(global-set-key (kbd "C-v") (lambda (amount)
-			      (interactive "p")
-			      (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
-				(progn
-				  (setq scroll-preserve-screen-position 1)
-				  (scroll-up-command)
-				  (setq scroll-preserve-screen-position current-setting)))))
+(global-set-key (kbd "C-v")
+                (lambda (amount)
+                  (interactive "p")
+                  (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
+                    (condition-case err
+                        (progn
+                          (setq scroll-preserve-screen-position 1)
+                          (scroll-up-command)
+                          (setq scroll-preserve-screen-position current-setting))
+                      (error
+                       (setq scroll-preserve-screen-position current-setting)
+                       (signal (car err) (cdr err)))))))
 
-(global-set-key (kbd "M-v") (lambda (amount)
-			      (interactive "p")
-			      (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
-				(progn
-				  (setq scroll-preserve-screen-position 1)
-				  (scroll-down-command)
-				  (setq scroll-preserve-screen-position current-setting)))))
+(global-set-key (kbd "M-v")
+                (lambda (amount)
+                  (interactive "p")
+                  (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
+                    (condition-case err
+                        (progn
+                          (setq scroll-preserve-screen-position 1)
+                          (scroll-down-command)
+                          (setq scroll-preserve-screen-position current-setting))
+                      (error
+                       (setq scroll-preserve-screen-position current-setting)
+                       (signal (car err) (cdr err)))))))
 
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
