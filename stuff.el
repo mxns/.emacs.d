@@ -37,6 +37,54 @@
      (t
       (scroll-lock-previous-line adjusted-amount)))))
 
+(global-set-key (kbd "M-n") (lambda (amount)
+			      (interactive "p")
+			      (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
+				(progn
+				  (setq scroll-preserve-screen-position 1)
+				  (scroll-lock-next-line amount)
+				  (setq scroll-preserve-screen-position current-setting)))))
+
+(global-set-key (kbd "M-p") (lambda (amount)
+			      (interactive "p")
+			      (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
+				(progn
+				  (setq scroll-preserve-screen-position 1)
+				  (scroll-lock-previous-line amount)
+				  (setq scroll-preserve-screen-position current-setting)))))
+
+(global-set-key (kbd "M-N") (lambda (amount)
+			      (interactive "p")
+			      (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
+				(progn
+				  (setq scroll-preserve-screen-position nil)
+				  (scroll-lock-next-line amount)
+				  (setq scroll-preserve-screen-position current-setting)))))
+
+(global-set-key (kbd "M-P") (lambda (amount)
+			      (interactive "p")
+			      (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
+				(progn
+				  (setq scroll-preserve-screen-position nil)
+				  (scroll-lock-previous-line amount)
+				  (setq scroll-preserve-screen-position current-setting)))))
+
+(global-set-key (kbd "C-v") (lambda (amount)
+			      (interactive "p")
+			      (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
+				(progn
+				  (setq scroll-preserve-screen-position 1)
+				  (scroll-up-command)
+				  (setq scroll-preserve-screen-position current-setting)))))
+
+(global-set-key (kbd "M-v") (lambda (amount)
+			      (interactive "p")
+			      (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
+				(progn
+				  (setq scroll-preserve-screen-position 1)
+				  (scroll-down-command)
+				  (setq scroll-preserve-screen-position current-setting)))))
+
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
@@ -64,6 +112,8 @@
 (treesit-install-language-grammar 'tsx)
 (treesit-install-language-grammar 'typescript)
 
+(use-package undo-tree
+  :hook (prog-mode . undo-tree-mode))
 (use-package vertico
   :custom
   ;; (vertico-scroll-margin 0) ;; Different scroll margin
@@ -94,20 +144,6 @@
 (use-package treemacs)
 (use-package company)
 (use-package undo-tree)
-(global-undo-tree-mode)
-(global-set-key (kbd "M-n") (lambda (amount)
-			      (interactive "p")
-			      (if (< amount 0)
-				  (bwd-scroll (- 0 amount))
-				(fwd-scroll amount))))
-
-(global-set-key (kbd "M-p") (lambda (amount)
-			      (interactive "p")
-			      (if (< amount 0)
-				  (fwd-scroll amount)
-				(bwd-scroll amount))))
-
-;;;(global-set-key (kbd "M-p") (lambda () (interactive) (scroll-lock-next-line -1)))
 (global-set-key (kbd "C-c g") 'magit-status)
 (global-set-key (kbd "C-c t") 'treemacs)
 
