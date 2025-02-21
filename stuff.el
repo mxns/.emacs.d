@@ -9,91 +9,49 @@
 (require 'use-package)
 (require 'scroll-lock)
 
-(defun fwd-scroll (amount)
-  "Forward scroll AMOUNT lines."
-  (let ((adjusted-amount
-	 (min
-	  amount
-	  (- (line-number-at-pos (point-max)) (line-number-at-pos)))))
-    (cond
-     ((<= adjusted-amount 0)
-      (message "End of buffer"))
-     ((< adjusted-amount amount)
-      (forward-line adjusted-amount))
-     (t
-      (scroll-lock-next-line amount)))))
+(setq lexical-binding t)
 
-(defun bwd-scroll (amount)
-  "Backward scroll AMOUNT lines."
-  (let ((adjusted-amount
-	 (min
-	  amount
-	  (- (line-number-at-pos) 1))))
-    (cond
-     ((<= adjusted-amount 0)
-      (message "Beginning of buffer"))
-     ((= (line-number-at-pos (window-start)) 1)
-      (forward-line (- 0 amount)))
-     (t
-      (scroll-lock-previous-line adjusted-amount)))))
+(defun do-while-preserving-screen-position (action)
+  "Return a function that perform ACTION while preserving screen position."
+  (lambda (&optional arg)
+    (interactive "p")
+    (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
+      (condition-case err
+          (progn
+            (setq scroll-preserve-screen-position 1)
+            (let ((result (if arg
+			      (funcall action arg)
+                            (funcall action))))
+	      (setq scroll-preserve-screen-position current-setting)
+	      result))
+        (error
+         (setq scroll-preserve-screen-position current-setting)
+         (signal (car err) (cdr err)))))))
 
-(global-set-key (kbd "M-n") (lambda (amount)
-			      (interactive "p")
-			      (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
-				(progn
-				  (setq scroll-preserve-screen-position 1)
-				  (scroll-lock-next-line amount)
-				  (setq scroll-preserve-screen-position current-setting)))))
+(defun do-while-not-preserving-screen-position (action)
+  "Return a function that perform ACTION while not preserving screen position."
+  (lambda (&optional arg)
+    (interactive "p")
+    (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
+      (condition-case err
+          (progn
+            (setq scroll-preserve-screen-position nil)
+            (let ((result (if arg
+			      (funcall action arg)
+                            (funcall action))))
+	      (setq scroll-preserve-screen-position current-setting)
+	      result))
+        (error
+         (setq scroll-preserve-screen-position current-setting)
+         (signal (car err) (cdr err)))))))
 
-(global-set-key (kbd "M-p") (lambda (amount)
-			      (interactive "p")
-			      (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
-				(progn
-				  (setq scroll-preserve-screen-position 1)
-				  (scroll-lock-previous-line amount)
-				  (setq scroll-preserve-screen-position current-setting)))))
 
-(global-set-key (kbd "M-N") (lambda (amount)
-			      (interactive "p")
-			      (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
-				(progn
-				  (setq scroll-preserve-screen-position nil)
-				  (scroll-lock-next-line amount)
-				  (setq scroll-preserve-screen-position current-setting)))))
-
-(global-set-key (kbd "M-P") (lambda (amount)
-			      (interactive "p")
-			      (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
-				(progn
-				  (setq scroll-preserve-screen-position nil)
-				  (scroll-lock-previous-line amount)
-				  (setq scroll-preserve-screen-position current-setting)))))
-
-(global-set-key (kbd "C-v")
-                (lambda (amount)
-                  (interactive "p")
-                  (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
-                    (condition-case err
-                        (progn
-                          (setq scroll-preserve-screen-position 1)
-                          (scroll-up-command)
-                          (setq scroll-preserve-screen-position current-setting))
-                      (error
-                       (setq scroll-preserve-screen-position current-setting)
-                       (signal (car err) (cdr err)))))))
-
-(global-set-key (kbd "M-v")
-                (lambda (amount)
-                  (interactive "p")
-                  (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
-                    (condition-case err
-                        (progn
-                          (setq scroll-preserve-screen-position 1)
-                          (scroll-down-command)
-                          (setq scroll-preserve-screen-position current-setting))
-                      (error
-                       (setq scroll-preserve-screen-position current-setting)
-                       (signal (car err) (cdr err)))))))
+(global-set-key (kbd "M-n") (do-while-preserving-screen-position #'scroll-lock-next-line))
+(global-set-key (kbd "M-p") (do-while-preserving-screen-position #'scroll-lock-previous-line))
+(global-set-key (kbd "M-N") (do-while-not-preserving-screen-position #'scroll-lock-next-line))
+(global-set-key (kbd "M-P") (do-while-not-preserving-screen-position #'scroll-lock-previous-line))
+(global-set-key (kbd "C-v") (do-while-preserving-screen-position #'scroll-up-command))
+(global-set-key (kbd "M-v") (do-while-preserving-screen-position #'scroll-down-command))
 
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
