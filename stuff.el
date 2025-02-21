@@ -40,7 +40,7 @@ Otherwise, ACTION is called without arguments."
       (condition-case err
           (progn
             (setq scroll-preserve-screen-position nil)
-            (let ((result (if arg
+            (let ((result (if (and arg use-arg)
 			      (funcall action arg)
                             (funcall action))))
 	      (setq scroll-preserve-screen-position current-setting)
