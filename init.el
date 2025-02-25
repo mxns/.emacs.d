@@ -23,21 +23,11 @@
 ;;; (package-initialize)
 ;;; (package-refresh-contents)
 
-;;; tree-sitter
-;; (setq treesit-language-source-alist
-;;       '((yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
-;; 	(json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
-;; 	(ruby . ("https://github.com/tree-sitter/tree-sitter-ruby" "v0.23.1"))
-;; 	(tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2" "tsx/src"))
-;; 	(typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2" "typescript/src"))
-;; 	(java . ("https://github.com/tree-sitter/tree-sitter-java" "v0.23.5"))))
-;; (treesit-install-language-grammar 'yaml)
-;; (treesit-install-language-grammar 'json)
-;; (treesit-install-language-grammar 'java)
-;; (treesit-install-language-grammar 'tsx)
-;; (treesit-install-language-grammar 'typescript)
-
 (load "~/.emacs.d/scrolling")
+
+(use-package prog-mode
+  :ensure nil
+  :hook (electric-pair-mode . prog-mode))
 
 (use-package undo-tree
   :bind ("C-c u" . undo-tree-visualize)
@@ -115,3 +105,16 @@
 ;;; stuff.el ends here
 
 
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(prog-mode which-key wfnames vertico undo-tree rg projectile origami magit lsp-ui lsp-java flycheck consult company async)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
