@@ -5,8 +5,6 @@
 
 ;;; Code:
 
-(load "~/.emacs.d/scrolling")
-
 (require 'package)
 (require 'use-package)
 
@@ -37,14 +35,10 @@
 (treesit-install-language-grammar 'tsx)
 (treesit-install-language-grammar 'typescript)
 
-(add-hook 'hs-minor-mode-hook
-          (lambda ()
-            (local-set-key (kbd "C-c C-v") 'hs-toggle-hiding)))
-(add-hook 'hs-minor-mode-hook
-          (lambda ()
-            (local-set-key (kbd "C-c v") 'hs-toggle-hiding)))
+(load "~/.emacs.d/scrolling")
 
 (use-package undo-tree
+  :bind ("C-c u" . undo-tree-visualize)
   :hook (prog-mode . undo-tree-mode))
 
 (use-package vertico
@@ -60,7 +54,7 @@
 
 (use-package rg
   :ensure-system-package rg
-  :hook (grep-mode . (lambda () (setq truncate-lines t))))
+  :hook (grep-mode . (lambda () (toggle-truncate-lines 1))))
 
 (use-package consult
   :hook (completion-list-mode . consult-preview-at-point-mode))
@@ -68,26 +62,26 @@
 (use-package projectile
   :init (setq projectile-project-search-path '("~/devel/fortifiedid/"))
   :config (projectile-mode)
-  :config (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
   :config (setq projectile-project-search-path '("~/devel/fortifiedid/"))
   :config (projectile-discover-projects-in-search-path))
 
 (use-package which-key
-  :config (which-key-mode)) ;;; Try using C-c C-h instead of which-key
+  :config (which-key-mode))
 
 (use-package flycheck
   :config (global-flycheck-mode))
 
-(use-package magit)
+(use-package magit
+  :bind ("C-c g" . magit-status))
 
-(use-package treemacs)
+(use-package treemacs
+  :bind ("C-c t" . treemacs))
 
 (use-package company)
 
-(use-package undo-tree)
-
-(global-set-key (kbd "C-c g") 'magit-status)
-(global-set-key (kbd "C-c t") 'treemacs)
+(use-package hs-minor-mode
+  :ensure nil
+  :bind (:map hs-minor-mode-map ("C-c v" . hs-toggle-hiding)))
 
 (use-package json-ts-mode
   :mode "\\.json\\'"
