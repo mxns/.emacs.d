@@ -10,8 +10,6 @@
 
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-(package-initialize)
-(package-refresh-contents)
 
 (setq confirm-kill-emacs 'y-or-n-p)
 (setq ns-right-option-modifier 'option)
@@ -21,19 +19,23 @@
 (setq use-package-always-ensure t)
 (setq read-file-name-completion-ignore-case t)
 
+;;; init and refresh packages
+;;; (package-initialize)
+;;; (package-refresh-contents)
+
 ;;; tree-sitter
-(setq treesit-language-source-alist
-      '((yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
-	(json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
-	(ruby . ("https://github.com/tree-sitter/tree-sitter-ruby" "v0.23.1"))
-	(tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2" "tsx/src"))
-	(typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2" "typescript/src"))
-	(java . ("https://github.com/tree-sitter/tree-sitter-java" "v0.23.5"))))
-(treesit-install-language-grammar 'yaml)
-(treesit-install-language-grammar 'json)
-(treesit-install-language-grammar 'java)
-(treesit-install-language-grammar 'tsx)
-(treesit-install-language-grammar 'typescript)
+;; (setq treesit-language-source-alist
+;;       '((yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
+;; 	(json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+;; 	(ruby . ("https://github.com/tree-sitter/tree-sitter-ruby" "v0.23.1"))
+;; 	(tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2" "tsx/src"))
+;; 	(typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2" "typescript/src"))
+;; 	(java . ("https://github.com/tree-sitter/tree-sitter-java" "v0.23.5"))))
+;; (treesit-install-language-grammar 'yaml)
+;; (treesit-install-language-grammar 'json)
+;; (treesit-install-language-grammar 'java)
+;; (treesit-install-language-grammar 'tsx)
+;; (treesit-install-language-grammar 'typescript)
 
 (load "~/.emacs.d/scrolling")
 
