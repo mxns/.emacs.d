@@ -1,9 +1,12 @@
-;;; stuff.el --- mxns config
+;;; init.el --- mxns config
 
 ;;; Commentary:
-;;; stuff about stuff
+;;; My configuration
 
 ;;; Code:
+
+(setq custom-file "~/.emacs.d/custom.el")
+(load custom-file 'noerror 'nomessage)
 
 (require 'package)
 (require 'use-package)
@@ -53,6 +56,7 @@
 
 (use-package projectile
   :init (setq projectile-project-search-path '("~/devel/fortifiedid/"))
+  :bind-keymap ("C-c p" . projectile-command-map)
   :config (projectile-mode)
   :config (setq projectile-project-search-path '("~/devel/fortifiedid/"))
   :config (projectile-discover-projects-in-search-path))
@@ -74,6 +78,10 @@
 (use-package hs-minor-mode
   :ensure nil
   :bind (:map hs-minor-mode-map ("C-c v" . hs-toggle-hiding)))
+
+(use-package bash-ts-mode
+  :ensure nil
+  :mode "\\.sh\\'")
 
 (use-package json-ts-mode
   :mode "\\.json\\'"
@@ -97,24 +105,10 @@
 
 ;;; https://repo.eclipse.org/content/repositories/jdtls-releases/org/eclipse/jdt/ls/org.eclipse.jdt.ls.core/
 (use-package lsp-java
+;;;  :mode "\\.java\\'"
   :init (setq lsp-java-jdt-download-url "https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.44.0/jdt-language-server-1.44.0-20250122155241.tar.gz")
   :init (setq lsp-java-java-path "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/bin/java")
   :init (setenv "JAVA_HOME"  "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/")
   :config (add-hook 'java-ts-mode-hook 'lsp))
 
-;;; stuff.el ends here
-
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(prog-mode which-key wfnames vertico undo-tree rg projectile origami magit lsp-ui lsp-java flycheck consult company async)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+;;; init.el ends here
