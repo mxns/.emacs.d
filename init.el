@@ -6,13 +6,15 @@
 ;;; Code:
 
 (setq custom-file "~/.emacs.d/custom.el")
-(load custom-file 'noerror 'nomessage)
+(when (file-exists-p custom-file)
+  (load custom-file 'noerror 'nomessage))
 
 (require 'package)
 (require 'use-package)
 
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+(add-to-list 'load-path "~/.emacs.d/local/")
 
 (setq confirm-kill-emacs 'y-or-n-p)
 (setq ns-right-option-modifier 'option)
@@ -71,6 +73,7 @@
   :bind ("C-c g" . magit-status))
 
 (use-package treemacs
+  :custom (lsp-treemacs-theme "Iconless")
   :bind ("C-c t" . treemacs))
 
 (use-package company)
@@ -87,9 +90,10 @@
   :mode "\\.json\\'"
   :hook (json-ts-mode . hs-minor-mode))
 
-(use-package yaml-ts-mode
+(use-package yaml-mode
   :mode "\\.yml\\'"
-  :mode "\\.yaml\\'")
+  :mode "\\.yaml\\'"
+  :hook (yaml-mode . undo-tree-mode))
 
 (use-package typescript-ts-mode
   :mode "\\.ts\\'"
