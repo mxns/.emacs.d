@@ -54,6 +54,10 @@
   :hook (grep-mode . (lambda () (toggle-truncate-lines 1))))
 
 (use-package consult
+  :bind ("C-c f" . consult-find)
+  :init  (setq xref-show-xrefs-function #'consult-xref
+               xref-show-definitions-function #'consult-xref)
+  :config (require 'consult-xref)
   :hook (completion-list-mode . consult-preview-at-point-mode))
 
 (use-package projectile
@@ -76,7 +80,8 @@
   :custom (lsp-treemacs-theme "Iconless")
   :bind ("C-c t" . treemacs))
 
-(use-package company)
+(use-package company
+  :bind (("M-TAB" . company-complete)))
 
 (use-package hs-minor-mode
   :ensure nil
