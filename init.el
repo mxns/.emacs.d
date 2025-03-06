@@ -30,20 +30,20 @@
 
 (load "~/.emacs.d/scrolling")
 
-(use-package prog-mode
-  :ensure nil
-  :hook (electric-pair-mode . prog-mode))
+;; (use-package prog-mode
+;;   :ensure nil
+;;   :hook (electric-pair-mode . prog-mode))
 
 (use-package undo-tree
   :bind ("C-c u" . undo-tree-visualize)
   :hook (prog-mode . undo-tree-mode))
 
 (use-package vertico
-  ;;:custom
+  :custom
   ;; (vertico-scroll-margin 0) ;; Different scroll margin
   ;; (vertico-count 20) ;; Show more candidates
   ;; (vertico-resize t) ;; Grow and shrink the Vertico minibuffer
-  ;; (vertico-cycle t) ;; Enable cycling for `vertico-next/previous'
+  (vertico-cycle t) ;; Enable cycling for `vertico-next/previous'
   :config (vertico-mode))
 
 (use-package savehist
@@ -59,6 +59,22 @@
                xref-show-definitions-function #'consult-xref)
   :config (require 'consult-xref)
   :hook (completion-list-mode . consult-preview-at-point-mode))
+
+;; Enable rich annotations using the Marginalia package
+(use-package marginalia
+  ;; Bind `marginalia-cycle' locally in the minibuffer.  To make the binding
+  ;; available in the *Completions* buffer, add it to the
+  ;; `completion-list-mode-map'.
+  :bind (:map minibuffer-local-map
+         ("M-A" . marginalia-cycle))
+
+  ;; The :init section is always executed.
+  :init
+
+  ;; Marginalia must be activated in the :init section of use-package such that
+  ;; the mode gets enabled right away. Note that this forces loading the
+  ;; package.
+  (marginalia-mode))
 
 (use-package projectile
   :init (setq projectile-project-search-path '("~/devel/fortifiedid/"))
