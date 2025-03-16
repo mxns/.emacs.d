@@ -54,7 +54,9 @@
   :hook (grep-mode . (lambda () (toggle-truncate-lines 1))))
 
 (use-package consult
-  :bind ("C-c f" . consult-find)
+  :ensure-system-package fd
+  :bind ("C-c f" . consult-fd)
+  :bind ("C-c g" . consult-ripgrep)
   :init  (setq xref-show-xrefs-function #'consult-xref
                xref-show-definitions-function #'consult-xref)
   :config (require 'consult-xref)
@@ -90,11 +92,12 @@
   :config (global-flycheck-mode))
 
 (use-package magit
-  :bind ("C-c g" . magit-status))
+  :bind ("C-c m" . magit-status))
 
 (use-package treemacs
   :custom (lsp-treemacs-theme "Iconless")
   :bind ("C-c t" . treemacs))
+
 
 (use-package company
   :bind (("M-TAB" . company-complete)))

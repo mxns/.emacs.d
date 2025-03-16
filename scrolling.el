@@ -58,19 +58,21 @@ Otherwise, ACTION is called without arguments."
 (defun my/horizontal-scroll-mode ()
   "Activate temporary horizontal scroll mode."
   (interactive)
-  (set-transient-map
-   (let ((map (make-sparse-keymap)))
-     (define-key map (kbd "<right>") (lambda () (interactive) (scroll-left 1)))
-     (define-key map (kbd "C-<right>") (lambda () (interactive) (scroll-left 4)))
-     (define-key map (kbd "<left>") (lambda () (interactive) (scroll-left -1)))
-     (define-key map (kbd "C-<left>") (lambda () (interactive) (scroll-left -4)))
-     (define-key map (kbd "<up>") (do-while-preserving-screen-position #'scroll-lock-previous-line))
-     (define-key map (kbd "<down>") (do-while-preserving-screen-position #'scroll-lock-next-line))
-     map)
-   t))
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-f") (lambda (&optional arg) (interactive "p") (scroll-left (or arg 1))))
+    (define-key map (kbd "M-f") (lambda () (interactive "p")  (scroll-left 4)))
+    (define-key map (kbd "C-b") (lambda () (interactive "p") (scroll-left -1)))
+    (define-key map (kbd "M-b") (lambda () (interactive "p") (scroll-left -4)))
+    (define-key map (kbd "C-p") (do-while-preserving-screen-position (lambda () (scroll-lock-previous-line))))
+    (define-key map (kbd "M-p") (do-while-preserving-screen-position (lambda () (scroll-lock-previous-line 4))))
+    (define-key map (kbd "C-n") (do-while-preserving-screen-position (lambda () (scroll-lock-next-line))))
+    (define-key map (kbd "M-n") (do-while-preserving-screen-position (lambda () (scroll-lock-next-line))))
+    (define-key map (kbd "C-u") t)
+    (set-transient-map map t)))
+
 
 ;; Bind the command to "C-c n"
-(global-set-key (kbd "C-c <right>") #'my/horizontal-scroll-mode)
-(global-set-key (kbd "C-c <left>") #'my/horizontal-scroll-mode)
+(global-set-key (kbd "C-c C-n") #'my/horizontal-scroll-mode)
+(global-set-key (kbd "C-c n") #'my/horizontal-scroll-mode)
 
 ;;; scrolling.el ends here
