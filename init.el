@@ -9,6 +9,9 @@
 (when (file-exists-p custom-file)
   (load custom-file 'noerror 'nomessage))
 
+(load-file "~/.emacs.d/friendly.el")
+(mxns/toggle-mouse)
+
 (require 'package)
 (require 'use-package)
 
@@ -81,8 +84,8 @@
 (use-package projectile
   :init (setq projectile-project-search-path '("~/devel/fortifiedid/"))
   :bind-keymap ("C-c p" . projectile-command-map)
+  :hook (projectile-after-switch-project . treemacs-add-and-display-current-project-exclusively)
   :config (projectile-mode)
-  :config (setq projectile-project-search-path '("~/devel/fortifiedid/"))
   :config (projectile-discover-projects-in-search-path))
 
 (use-package which-key
@@ -130,6 +133,9 @@
   :config (define-key lsp-mode-map (kbd "C-c l") lsp-command-map))
 
 (use-package lsp-ui)
+
+(use-package terraform-mode
+  :mode "\\.tf\\'")
 
 ;;; https://repo.eclipse.org/content/repositories/jdtls-releases/org/eclipse/jdt/ls/org.eclipse.jdt.ls.core/
 (use-package lsp-java

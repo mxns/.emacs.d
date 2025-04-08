@@ -15,7 +15,10 @@ If USE-ARG is provided and ARG is present, ACTION is called with ARG.
 Otherwise, ACTION is called without arguments."
   (lambda (&optional arg)
     (interactive "p")
-    (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
+    (let ((current-setting (if scroll-preserve-screen-position 1 nil))
+	  (current-column-position (max
+				    (or (current-column) 0)
+				    (or (car temporary-goal-column) 0))))
       (condition-case err
           (progn
             (setq scroll-preserve-screen-position 1)
@@ -50,8 +53,8 @@ Otherwise, ACTION is called without arguments."
 
 (global-set-key (kbd "M-n") (do-while-preserving-screen-position #'scroll-lock-next-line t))
 (global-set-key (kbd "M-p") (do-while-preserving-screen-position #'scroll-lock-previous-line t))
-(global-set-key (kbd "M-P") (do-while-not-preserving-screen-position #'scroll-lock-next-line))
-(global-set-key (kbd "M-N") (do-while-not-preserving-screen-position #'scroll-lock-previous-line))
+(global-set-key (kbd "M-N") (do-while-not-preserving-screen-position #'scroll-lock-next-line))
+(global-set-key (kbd "M-P") (do-while-not-preserving-screen-position #'scroll-lock-previous-line))
 (global-set-key (kbd "C-v") (do-while-preserving-screen-position #'scroll-up-command))
 (global-set-key (kbd "M-v") (do-while-preserving-screen-position #'scroll-down-command))
 
