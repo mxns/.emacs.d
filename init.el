@@ -10,7 +10,6 @@
   (load custom-file 'noerror 'nomessage))
 
 (load-file "~/.emacs.d/friendly.el")
-(mxns/toggle-mouse)
 
 (require 'package)
 (require 'use-package)
@@ -26,6 +25,10 @@
                            (run-with-timer 0.05 nil 'invert-face 'mode-line)))
 (setq use-package-always-ensure t)
 (setq read-file-name-completion-ignore-case t)
+
+;;;; per https://github.com/emacs-lsp/lsp-mode#performance
+;;; (setq read-process-output-max (* 10 1024 1024)) ;; 10mb
+;;; (setq gc-cons-threshold 200000000)
 
 ;;; init and refresh packages
 ;;; (package-initialize)
@@ -84,7 +87,7 @@
 (use-package projectile
   :init (setq projectile-project-search-path '("~/devel/fortifiedid/"))
   :bind-keymap ("C-c p" . projectile-command-map)
-  :hook (projectile-after-switch-project . treemacs-add-and-display-current-project-exclusively)
+  :hook (projectile-after-switch-project . (lambda () (save-selected-window (treemacs-add-and-display-current-project-exclusively))))
   :config (projectile-mode)
   :config (projectile-discover-projects-in-search-path))
 
@@ -109,6 +112,11 @@
   :ensure nil
   :bind (:map hs-minor-mode-map ("C-c v" . hs-toggle-hiding)))
 
+(use-package origami-mode
+  :ensure nil
+  :bind (:map origami-mode-map ("C-c v" . origami-toggle-node))
+  :bind (:map origami-mode-map ("C-c C-v" . origami-toggle-node)))
+
 (use-package bash-ts-mode
   :ensure nil
   :mode "\\.sh\\'")
@@ -130,6 +138,7 @@
   :hook (lsp-mode . lsp-enable-which-key-integration)
   :hook (typescript-ts-mode . lsp-mode)
   :hook (tsx-ts-mode . lsp-mode)
+;;;  :init (setq lsp-use-plists t)
   :config (define-key lsp-mode-map (kbd "C-c l") lsp-command-map))
 
 (use-package lsp-ui)

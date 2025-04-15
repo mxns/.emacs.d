@@ -1,8 +1,15 @@
+;;; package --- Friendly scrolling.
+
+;;; Commentary:
+
+;;; Code:
+
 ;;; -*- lexical-binding: t -*-
 
-(setq mxns/mouse 1)
+(defvar mxns/mouse 1)
 
 (defun mxns/toggle-mouse ()
+  "Toggle friendly scrolling."
   (interactive)
   (unless (display-graphic-p)
     (if mxns/mouse
@@ -31,6 +38,7 @@
 	(global-unset-key (kbd "<wheel-right>"))
 	(setq mxns/mouse 1)))))
 
+(mxns/toggle-mouse)
 
-
+;;; friendly.el ends here
 
