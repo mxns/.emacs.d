@@ -47,6 +47,10 @@
   :bind ("C-c u" . undo-tree-visualize)
   :hook (prog-mode . undo-tree-mode))
 
+(use-package conf-space-mode
+  :ensure nil
+  :hook (conf-space-mode . undo-tree-mode))
+
 (use-package vertico
   :custom
   ;; (vertico-scroll-margin 0) ;; Different scroll margin
@@ -140,6 +144,7 @@
   :mode "\\.ts\\'"
   :mode "\\.tsx\\'")
 
+;;; https://www.ovistoica.com/blog/2024-7-05-modern-emacs-typescript-web-tsx-config
 (use-package lsp-mode
   :diminish "LSP"
   :ensure t
@@ -150,7 +155,7 @@
            js-ts-mode) . lsp-deferred))
   :custom
   (lsp-keymap-prefix "C-c l")           ; Prefix for LSP actions
-  (lsp-completion-provider :capf)       ; Using Corfu as the provider
+  (lsp-completion-provider :capf)       ; Using CAPF as the provider
   (lsp-diagnostics-provider :flycheck)
   (lsp-session-file (locate-user-emacs-file ".lsp-session"))
   (lsp-log-io nil)                      ; IMPORTANT! Use only for debugging! Drastically affects performance
@@ -194,7 +199,7 @@
   (lsp-lens-enable nil)                 ; Optional, I don't need it
   ;; semantic
   (lsp-semantic-tokens-enable nil)      ; Related to highlighting, and we defer to treesitter
-
+  
   :init
   (setq lsp-use-plists t))
 
@@ -230,7 +235,7 @@
 ;;; https://repo.eclipse.org/content/repositories/jdtls-releases/org/eclipse/jdt/ls/org.eclipse.jdt.ls.core/
 (use-package lsp-java
 ;;;  :mode "\\.java\\'"
-  :init (setq lsp-java-jdt-download-url "https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.44.0/jdt-language-server-1.44.0-20250122155241.tar.gz")
+  :init (setq lsp-java-jdt-download-url "https://download.eclipse.org/jdtls/milestones/1.46.1/jdt-language-server-1.46.1-202504011455.tar.gz")
   :init (setq lsp-java-java-path "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/bin/java")
   :init (setenv "JAVA_HOME"  "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/")
   :config (add-hook 'java-ts-mode-hook 'lsp))
