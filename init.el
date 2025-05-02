@@ -37,11 +37,6 @@
 (setq read-file-name-completion-ignore-case t)
 (setq read-buffer-completion-ignore-case t)
 (setq-default indent-tabs-mode nil)
-;; (setq show-paren-style 'parenthesis
-;;       show-paren-when-point-inside-paren t
-;;       show-paren-when-point-in-periphery t
-;;       show-paren-context-when-offscreen t
-;;       show-paren-delay 2)
 (show-paren-mode 1)
 (setq match-paren--idle-timer
       (run-with-idle-timer match-paren--delay t #'blink-matching-open))
@@ -50,11 +45,11 @@
 (setq read-process-output-max (* 10 1024 1024)) ;; 10mb
 (setq gc-cons-threshold 200000000)
 
-(load "~/.emacs.d/friendly")
-(load "~/.emacs.d/scrolling")
 (setq custom-file "~/.emacs.d/custom.el")
 (when (file-exists-p custom-file)
   (load custom-file 'noerror 'nomessage))
+(load "~/.emacs.d/friendly")
+(load "~/.emacs.d/scrolling")
 
 (defvar my-prefix-map (make-sparse-keymap)
   "My custom keymap for prefixed commands.")
@@ -101,8 +96,10 @@
   :init
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
-  :config (require 'consult-xref)
-  :hook (completion-list-mode . consult-preview-at-point-mode))
+  :config
+  (require 'consult-xref)
+  :hook
+  (completion-list-mode . consult-preview-at-point-mode))
 
 (use-package marginalia
   ;; Bind `marginalia-cycle' locally in the minibuffer.  To make the binding
@@ -158,8 +155,7 @@
 (use-package origami-mode
   :ensure nil
   :bind
-  (:map origami-mode-map ("C-c v" . origami-toggle-node))
-  (:map origami-mode-map ("C-c C-v" . origami-toggle-node)))
+  (:map origami-mode-map ("C-c v" . origami-toggle-node)))
 
 (use-package terraform-mode
   :mode
@@ -183,8 +179,12 @@
   :hook (yaml-mode . undo-tree-mode))
 
 (use-package typescript-ts-mode
-  :mode "\\.ts\\'"
-  :mode "\\.tsx\\'")
+  :mode
+  "\\.ts\\'"
+  "\\.tsx\\'")
+
+(use-package java-ts-mode
+  :mode "\\.java\\'")
 
 ;;; thanks to https://www.ovistoica.com/blog/2024-7-05-modern-emacs-typescript-web-tsx-config
 (use-package lsp-mode
@@ -194,7 +194,8 @@
          (lsp-mode . lsp-enable-which-key-integration)
          ((tsx-ts-mode
            typescript-ts-mode
-           js-ts-mode) . lsp-deferred))
+           js-ts-mode
+           java-ts-mode) . lsp-deferred))
   :custom
   (lsp-keymap-prefix "C-c l")           ; Prefix for LSP actions
   (lsp-completion-provider :capf)       ; Using CAPF as the provider
@@ -206,8 +207,8 @@
   ;; core
   (lsp-enable-xref t)                   ; Use xref to find references
   (lsp-auto-configure t)                ; Used to decide between current active servers
-  (lsp-eldoc-enable-hover nil)            ; Display signature information in the echo area
-  (lsp-enable-dap-auto-configure t)     ; Debug support
+  (lsp-eldoc-enable-hover t)            ; Display signature information in the echo area
+  (lsp-enable-dap-auto-configure nil)     ; Debug support (causes error if X is not available)
   (lsp-enable-file-watchers nil)
   (lsp-enable-folding nil)              ; I disable folding since I use origami
   (lsp-enable-imenu t)
@@ -218,8 +219,8 @@
   (lsp-enable-symbol-highlighting t)     ; Shows usages of symbol at point in the current buffer
   (lsp-enable-text-document-color nil)   ; This is Treesitter's job
 
-  (lsp-ui-doc-enable nil)
-  (lsp-ui-sideline-show-hover nil)      ; Sideline used only for diagnostics
+  (lsp-ui-doc-enable nil)                ; causes error if X is not available
+  (lsp-ui-sideline-show-hover t)      ; Sideline used only for diagnostics
   (lsp-ui-sideline-diagnostic-max-lines 20) ; 20 lines since typescript errors can be quite big
   ;; completion
   (lsp-completion-enable t)
@@ -236,7 +237,7 @@
   (lsp-modeline-diagnostics-enable nil)  ; Already supported through `flycheck'
   (lsp-modeline-workspace-status-enable nil) ; Modeline displays "LSP" when lsp-mode is enabled
   (lsp-signature-doc-lines 1)                ; Don't raise the echo area. It's distracting
-  (lsp-ui-doc-use-childframe t)              ; Show docs for symbol at point
+  (lsp-ui-doc-use-childframe nil)              ; Show docs for symbol at point
   (lsp-eldoc-render-all nil)            ; This would be very useful if it would respect `lsp-signature-doc-lines', currently it's distracting
   ;; lens
   (lsp-lens-enable nil)                 ; Optional, I don't need it
@@ -273,7 +274,6 @@
   (setq lsp-java-java-path "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/bin/java")
   (setenv "JAVA_HOME"  "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/")
   :config
-  (add-hook 'java-ts-mode-hook 'lsp)
   (define-key my-prefix-map (kbd "t") #'lsp-java-type-hierarchy))
 
 ;;; init.el ends here
