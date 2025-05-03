@@ -51,10 +51,22 @@
 (load "~/.emacs.d/friendly")
 (load "~/.emacs.d/scrolling")
 
-(defvar my-prefix-map (make-sparse-keymap)
-  "My custom keymap for prefixed commands.")
-(define-key my-prefix-map (kbd "r") #'xref-find-references)
-(define-key global-map (kbd "C-c a") my-prefix-map)
+(defvar my-lsp-java-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c a d") #'lsp-find-definition)
+    (define-key map (kbd "C-c a r") #'lsp-rename)
+    (define-key map (kbd "C-c a x") #'lsp-execute-code-action)
+    (define-key map (kbd "C-c a t") #'lsp-java-type-hierarchy)
+    (define-key map (kbd "C-c a c") #'lsp-treemacs-call-hierarchy)
+    (define-key map (kbd "C-c a e") #'lsp-treemacs-errors-list)
+    (define-key map (kbd "C-c a o") #'helm-lsp-workspace-symbol)
+    map)
+  "Keymap for `my-lsp-java-mode'.")
+
+(define-minor-mode my-lsp-java-mode
+  "Minor mode to add Java-specific keybindings."
+  :lighter " MyJava"
+  :keymap my-lsp-java-mode-map)
 
 (use-package undo-tree
   :bind
@@ -192,6 +204,9 @@
   :ensure t
   :hook ((lsp-mode . lsp-diagnostics-mode)
          (lsp-mode . lsp-enable-which-key-integration)
+         (lsp-mode . (lambda ()
+                       (when (derived-mode-p 'java-mode)
+                         (my-lsp-java-mode 1))))
          ((tsx-ts-mode
            typescript-ts-mode
            js-ts-mode
@@ -245,11 +260,8 @@
   (lsp-semantic-tokens-enable nil)      ; Related to highlighting, and we defer to treesitter
   
   :init
-  (setq lsp-use-plists nil)
+  (setq lsp-use-plists nil))
 
-  :config
-  (define-key my-prefix-map (kbd "c") #'lsp-treemacs-call-hierarchy)
-  (define-key my-prefix-map (kbd "o") #'helm-lsp-workspace-symbol))
 
 (use-package lsp-ui)
 
@@ -272,8 +284,6 @@
   :init
   (setq lsp-java-jdt-download-url "https://download.eclipse.org/jdtls/milestones/1.46.1/jdt-language-server-1.46.1-202504011455.tar.gz")
   (setq lsp-java-java-path "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/bin/java")
-  (setenv "JAVA_HOME"  "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/")
-  :config
-  (define-key my-prefix-map (kbd "t") #'lsp-java-type-hierarchy))
+  (setenv "JAVA_HOME"  "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/"))
 
 ;;; init.el ends here
