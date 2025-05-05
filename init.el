@@ -126,35 +126,9 @@
   ;; package.
   (marginalia-mode))
 
-(use-package projectile
-  :init
-  (setq projectile-project-search-path '("~/devel/fortifiedid/"))
-  :bind-keymap
-  ("C-c p" . projectile-command-map)
-  :hook
-  (projectile-after-switch-project . (lambda () (save-selected-window (treemacs-add-and-display-current-project-exclusively))))
-  :config
-  (projectile-mode)
-  (projectile-discover-projects-in-search-path))
-
 (use-package which-key
   :config
   (which-key-mode))
-
-(use-package flycheck
-  :config
-  (global-flycheck-mode))
-
-(use-package yasnippet
-  :config
-  (yas-global-mode))
-
-(use-package magit
-  :bind ("C-c m" . magit-status))
-
-(use-package treemacs
-  :custom (lsp-treemacs-theme "Iconless")
-  :bind ("C-c t" . treemacs))
 
 (use-package company
   :bind (("M-TAB" . company-complete)))
@@ -168,6 +142,27 @@
   :ensure nil
   :bind
   (:map origami-mode-map ("C-c v" . origami-toggle-node)))
+
+(use-package project
+  :ensure nil
+  :config
+  (defun mxns/on-project-switch (&rest _)
+    "Function to run after switching projects."
+    (save-selected-window (treemacs-add-and-display-current-project)))
+  
+  ;; Advice the project-switch-project function
+  (advice-add 'project-switch-project :after #'mxns/on-project-switch))
+
+(use-package magit
+  :bind ("C-c m" . magit-status))
+
+(use-package flycheck
+  :config
+  (global-flycheck-mode))
+
+(use-package yasnippet
+  :config
+  (yas-global-mode))
 
 (use-package terraform-mode
   :mode
@@ -190,6 +185,10 @@
   "\\.yaml\\'"
   :hook (yaml-mode . undo-tree-mode))
 
+(use-package nxml-mode
+  :ensure nil
+  :hook (nxml-mode . undo-tree-mode))
+
 (use-package typescript-ts-mode
   :mode
   "\\.ts\\'"
@@ -197,6 +196,12 @@
 
 (use-package java-ts-mode
   :mode "\\.java\\'")
+
+(use-package helm-lsp)
+
+(use-package lsp-treemacs
+  :custom (lsp-treemacs-theme "Iconless")
+  :bind ("C-c t" . treemacs))
 
 ;;; thanks to https://www.ovistoica.com/blog/2024-7-05-modern-emacs-typescript-web-tsx-config
 (use-package lsp-mode
@@ -276,6 +281,10 @@
   :config
   (setf (alist-get 'prettier-json apheleia-formatters)
         '("prettier" "--stdin-filepath" filepath))
+  (setf (alist-get 'google-java-format apheleia-formatters)
+        '("java" "-jar" "/Users/mxns/java/google/google-java-format-1.26.0-all-deps.jar" "-"))
+  (setf (alist-get 'java-mode apheleia-mode-alist)
+        'google-java-format)
   (apheleia-global-mode +1))
 
 ;;; https://repo.eclipse.org/content/repositories/jdtls-releases/org/eclipse/jdt/ls/org.eclipse.jdt.ls.core/
