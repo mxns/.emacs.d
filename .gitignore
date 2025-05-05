@@ -1,0 +1,17 @@
+*~
+*#
+.cache/
+.dap-breakpoints
+.lsp-session
+.lsp-session-v1
+eclipse.jdt.ls/
+elpa/
+eshell/
+history
+projects
+tramp
+transient/
+tree-sitter/
+url/
+workspace/
+custom.el
