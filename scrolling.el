@@ -129,6 +129,6 @@ Otherwise, ACTION is called without arguments."
   (mxns/scroll-lock-update-goal-column)
   (set-transient-map mxns/movement-transient-map t))
 
-(global-set-key (kbd "C-c c") #'mxns/activate-movement-map)
+(global-set-key (kbd "C-c n") #'mxns/activate-movement-map)
 
 ;;; scrolling.el ends here

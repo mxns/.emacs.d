@@ -37,9 +37,10 @@
 (setq read-file-name-completion-ignore-case t)
 (setq read-buffer-completion-ignore-case t)
 (setq-default indent-tabs-mode nil)
-(show-paren-mode 1)
-(setq match-paren--idle-timer
-      (run-with-idle-timer match-paren--delay t #'blink-matching-open))
+
+;; (show-paren-mode 1)
+;; (setq match-paren--idle-timer
+;;       (run-with-idle-timer match-paren--delay t #'blink-matching-open))
 
 ;;;; per https://github.com/emacs-lsp/lsp-mode#performance
 (setq read-process-output-max (* 10 1024 1024)) ;; 10mb
@@ -53,13 +54,14 @@
 
 (defvar my-lsp-java-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c a d") #'lsp-find-definition)
-    (define-key map (kbd "C-c a r") #'lsp-rename)
-    (define-key map (kbd "C-c a x") #'lsp-execute-code-action)
-    (define-key map (kbd "C-c a t") #'lsp-java-type-hierarchy)
-    (define-key map (kbd "C-c a c") #'lsp-treemacs-call-hierarchy)
-    (define-key map (kbd "C-c a e") #'lsp-treemacs-errors-list)
-    (define-key map (kbd "C-c a o") #'helm-lsp-workspace-symbol)
+    (define-key map (kbd "C-c c g") #'lsp-find-definition)
+    (define-key map (kbd "C-c c f") #'lsp-find-references)
+    (define-key map (kbd "C-c c r") #'lsp-rename)
+    (define-key map (kbd "C-c c x") #'lsp-execute-code-action)
+    (define-key map (kbd "C-c c t") #'lsp-java-type-hierarchy)
+    (define-key map (kbd "C-c c c") #'lsp-treemacs-call-hierarchy)
+    (define-key map (kbd "C-c c e") #'lsp-treemacs-errors-list)
+    (define-key map (kbd "C-c c o") #'helm-lsp-workspace-symbol)
     map)
   "Keymap for `my-lsp-java-mode'.")
 
@@ -149,9 +151,13 @@
   (defun mxns/on-project-switch (&rest _)
     "Function to run after switching projects."
     (save-selected-window (treemacs-add-and-display-current-project)))
+  (defun mxns/on-project-kill (&rest _)
+    "Function to run after killing projects."
+    (treemacs-remove-project-from-workspace))
   
   ;; Advice the project-switch-project function
-  (advice-add 'project-switch-project :after #'mxns/on-project-switch))
+  (advice-add 'project-switch-project :after #'mxns/on-project-switch)
+  (advice-add 'project-kill-buffers :before #'mxns/on-project-kill))
 
 (use-package magit
   :bind ("C-c m" . magit-status))
