@@ -65,10 +65,15 @@ Otherwise, ACTION is called without arguments."
   (or arg (setq arg 1))
   (mxns/scroll-lock-update-goal-column)
   (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
-    (setq scroll-preserve-screen-position 1)
-    (if (not (pos-visible-in-window-p (point-max)))
-	(scroll-up arg))
-    (setq scroll-preserve-screen-position current-setting))
+    (condition-case err
+        (progn
+          (setq scroll-preserve-screen-position 1)
+          (if (not (pos-visible-in-window-p (point-max)))
+	      (scroll-up arg))
+          (setq scroll-preserve-screen-position current-setting))
+      (error
+       (setq scroll-preserve-screen-position current-setting)
+       (signal (car err) (cdr err)))))
   (scroll-lock-move-to-column scroll-lock-temporary-goal-column))
 
 (defun mxns/scroll-lock-previous-line (&optional arg)
@@ -77,9 +82,14 @@ Otherwise, ACTION is called without arguments."
   (or arg (setq arg 1))
   (mxns/scroll-lock-update-goal-column)
   (let ((current-setting (if scroll-preserve-screen-position 1 nil)))
-    (setq scroll-preserve-screen-position 1)
-    (scroll-down arg)
-    (setq scroll-preserve-screen-position current-setting))
+    (condition-case err
+        (progn
+          (setq scroll-preserve-screen-position 1)
+          (scroll-down arg)
+          (setq scroll-preserve-screen-position current-setting))
+      (error
+       (setq scroll-preserve-screen-position current-setting)
+       (signal (car err) (cdr err)))))
   (scroll-lock-move-to-column scroll-lock-temporary-goal-column))
 
 
