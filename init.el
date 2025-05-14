@@ -27,6 +27,11 @@
 (defvar match-paren--idle-timer nil)
 (defvar match-paren--delay 0.5)
 (declare-function lsp-java-type-hierarchy "lsp-java" ())
+(declare-function lsp-find-definition "lsp" ())
+(declare-function lsp-find-references "lsp" ())
+(declare-function lsp-rename "lsp" ())
+(declare-function lsp-execute-code-action "lsp" ())
+(declare-function treemacs-remove-project-from-workspace "treemacs" ())
 
 (setq confirm-kill-emacs 'y-or-n-p)
 (setq ns-right-option-modifier 'option)
@@ -147,17 +152,51 @@
 
 (use-package project
   :ensure nil
+  :bind-keymap ("C-c p" . project-prefix-map)
   :config
   (defun mxns/on-project-switch (&rest _)
     "Function to run after switching projects."
     (save-selected-window (treemacs-add-and-display-current-project)))
+
   (defun mxns/on-project-kill (&rest _)
     "Function to run after killing projects."
     (treemacs-remove-project-from-workspace))
-  
-  ;; Advice the project-switch-project function
+
+  (defun switch-to-first-project-buffer (project-path)
+    "Switch to the first buffer belonging to PROJECT-PATH from file-name-history.
+Uses file-name-history to find the most recently used file in the project."
+    (interactive
+     (list (completing-read "Project: "
+                            (project-known-project-roots)
+                            nil t)))
+    
+    (let* ((expanded-project-path (expand-file-name project-path))
+           ;; Filter file-name-history for the specified project
+           (project-files (cl-remove-if-not
+                           (lambda (item)
+                             (and (stringp item)
+                                  (string-prefix-p expanded-project-path
+                                                   (expand-file-name item))))
+                           file-name-history))
+           ;; Get first (most recent) item
+           (first-file (car project-files)))
+      
+      (if first-file
+          (let ((existing-buffer (find-buffer-visiting (expand-file-name first-file))))
+            (if existing-buffer
+                (progn
+                  (switch-to-buffer existing-buffer)
+                  (message "Switched to buffer: %s" (buffer-name existing-buffer)))
+              (find-file (expand-file-name first-file))
+              (message "Opened file: %s" first-file)
+              (mxns/on-project-switch)))
+        
+        (message "No files found for project %s in history" project-path))))
+
+  (global-set-key (kbd "C-c b") 'project-switch-buffer)
+  (global-set-key (kbd "C-c q") 'switch-to-first-project-buffer)
   (advice-add 'project-switch-project :after #'mxns/on-project-switch)
-  (advice-add 'project-kill-buffers :before #'mxns/on-project-kill))
+  (advice-add 'project-kill-buffers :after #'mxns/on-project-kill))
 
 (use-package magit
   :bind ("C-c m" . magit-status))
@@ -183,7 +222,8 @@
   :mode
   "\\.json\\'"
   :hook
-  (json-ts-mode . hs-minor-mode))
+  (json-ts-mode . hs-minor-mode)
+  (json-ts-mode . electric-pair-mode))
 
 (use-package yaml-mode
   :mode
@@ -198,10 +238,12 @@
 (use-package typescript-ts-mode
   :mode
   "\\.ts\\'"
-  "\\.tsx\\'")
+  "\\.tsx\\'"
+  :hook (typescript-s-mode . electric-pair-mode))
 
 (use-package java-ts-mode
-  :mode "\\.java\\'")
+  :mode "\\.java\\'"
+  :hook (java-ts-mode . electric-pair-mode))
 
 (use-package helm-lsp)
 
@@ -289,16 +331,18 @@
         '("prettier" "--stdin-filepath" filepath))
   (setf (alist-get 'google-java-format apheleia-formatters)
         '("java" "-jar" "/Users/mxns/java/google/google-java-format-1.26.0-all-deps.jar" "-"))
-  (setf (alist-get 'java-mode apheleia-mode-alist)
+  (setf (alist-get 'java-ts-mode apheleia-mode-alist)
         'google-java-format)
   (apheleia-global-mode +1))
 
-;;; https://repo.eclipse.org/content/repositories/jdtls-releases/org/eclipse/jdt/ls/org.eclipse.jdt.ls.core/
+;;; https://download.eclipse.org/jdtls/milestones/
 (use-package lsp-java
-;;;  :mode "\\.java\\'"
   :init
-  (setq lsp-java-jdt-download-url "https://download.eclipse.org/jdtls/milestones/1.46.1/jdt-language-server-1.46.1-202504011455.tar.gz")
-  (setq lsp-java-java-path "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/bin/java")
-  (setenv "JAVA_HOME"  "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/"))
+  (setq lsp-java-jdt-download-url
+        "https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.46.1/jdt-language-server-1.46.1-202504011455.tar.gz")
+  (setq lsp-java-java-path
+        "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/bin/java")
+  (setenv "JAVA_HOME"
+          "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/"))
 
 ;;; init.el ends here
