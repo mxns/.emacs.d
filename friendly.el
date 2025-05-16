@@ -1,10 +1,8 @@
-;;; package --- Friendly scrolling.
+;;; friendly.el --- Friendly mouse scrolling. -*- lexical-binding: t -*-
 
 ;;; Commentary:
 
 ;;; Code:
-
-;;; -*- lexical-binding: t -*-
 
 (defvar mxns/mouse 1)
 
