@@ -162,7 +162,7 @@
     "Function to run after killing projects."
     (treemacs-remove-project-from-workspace))
 
-  (defun switch-to-first-project-buffer (project-path)
+  (defun mxns/switch-to-first-project-buffer (project-path)
     "Switch to the first buffer belonging to PROJECT-PATH from file-name-history.
 Uses file-name-history to find the most recently used file in the project."
     (interactive
@@ -193,8 +193,8 @@ Uses file-name-history to find the most recently used file in the project."
         
         (message "No files found for project %s in history" project-path))))
 
-  (global-set-key (kbd "C-c b") 'project-switch-buffer)
-  (global-set-key (kbd "C-c q") 'switch-to-first-project-buffer)
+  (global-set-key (kbd "C-c b") 'project-switch-to-buffer)
+  (global-set-key (kbd "C-c q") 'mxns/switch-to-first-project-buffer)
   (advice-add 'project-switch-project :after #'mxns/on-project-switch)
   (advice-add 'project-kill-buffers :after #'mxns/on-project-kill))
 
@@ -213,17 +213,12 @@ Uses file-name-history to find the most recently used file in the project."
   :mode
   "\\.tf\\'")
 
-(use-package bash-ts-mode
-  :ensure nil
-  :mode
-  "\\.sh\\'")
-
-(use-package json-ts-mode
-  :mode
-  "\\.json\\'"
-  :hook
-  (json-ts-mode . hs-minor-mode)
-  (json-ts-mode . electric-pair-mode))
+(use-package treesit-auto
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
 
 (use-package yaml-mode
   :mode
@@ -235,21 +230,44 @@ Uses file-name-history to find the most recently used file in the project."
   :ensure nil
   :hook (nxml-mode . undo-tree-mode))
 
-(use-package typescript-ts-mode
-  :mode
-  "\\.ts\\'"
-  "\\.tsx\\'"
-  :hook (typescript-s-mode . electric-pair-mode))
+;; (use-package bash-ts-mode
+;;   :ensure nil
+;;   :mode
+;;   "\\.sh\\'")
 
-(use-package java-ts-mode
-  :mode "\\.java\\'"
-  :hook (java-ts-mode . electric-pair-mode))
+;; (use-package json-ts-mode
+;;   :mode
+;;   "\\.json\\'"
+;;   :hook
+;;   (json-ts-mode . hs-minor-mode)
+;;   (json-ts-mode . electric-pair-mode))
 
-(use-package helm-lsp)
+;; (use-package typescript-ts-mode
+;;   :mode
+;;   "\\.ts\\'"
+;;   "\\.tsx\\'"
+;;   :hook (typescript-s-mode . electric-pair-mode))
 
-(use-package lsp-treemacs
-  :custom (lsp-treemacs-theme "Iconless")
-  :bind ("C-c t" . treemacs))
+;; (use-package java-ts-mode
+;;   :mode "\\.java\\'"
+;;   :hook (java-ts-mode . electric-pair-mode))
+
+(use-package apheleia
+  :ensure apheleia
+  :diminish ""
+  :defines
+  apheleia-formatters
+  apheleia-mode-alist
+  :functions
+  apheleia-global-mode
+  :config
+  (setf (alist-get 'prettier-json apheleia-formatters)
+        '("prettier" "--stdin-filepath" filepath))
+  (setf (alist-get 'google-java-format apheleia-formatters)
+        '("java" "-jar" "/Users/mxns/java/google/google-java-format-1.26.0-all-deps.jar" "-"))
+  (setf (alist-get 'java-ts-mode apheleia-mode-alist)
+        'google-java-format)
+  (apheleia-global-mode +1))
 
 ;;; thanks to https://www.ovistoica.com/blog/2024-7-05-modern-emacs-typescript-web-tsx-config
 (use-package lsp-mode
@@ -315,25 +333,13 @@ Uses file-name-history to find the most recently used file in the project."
   :init
   (setq lsp-use-plists nil))
 
+(use-package lsp-treemacs
+  :custom (lsp-treemacs-theme "Iconless")
+  :bind ("C-c t" . treemacs))
+
+(use-package helm-lsp)
 
 (use-package lsp-ui)
-
-(use-package apheleia
-  :ensure apheleia
-  :diminish ""
-  :defines
-  apheleia-formatters
-  apheleia-mode-alist
-  :functions
-  apheleia-global-mode
-  :config
-  (setf (alist-get 'prettier-json apheleia-formatters)
-        '("prettier" "--stdin-filepath" filepath))
-  (setf (alist-get 'google-java-format apheleia-formatters)
-        '("java" "-jar" "/Users/mxns/java/google/google-java-format-1.26.0-all-deps.jar" "-"))
-  (setf (alist-get 'java-ts-mode apheleia-mode-alist)
-        'google-java-format)
-  (apheleia-global-mode +1))
 
 ;;; https://download.eclipse.org/jdtls/milestones/
 (use-package lsp-java
