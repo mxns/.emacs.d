@@ -281,7 +281,8 @@ Uses file-name-history to find the most recently used file in the project."
          ((tsx-ts-mode
            typescript-ts-mode
            js-ts-mode
-           java-ts-mode) . lsp-deferred))
+           java-ts-mode
+           python-ts-mode) . lsp-deferred))
   :custom
   (lsp-keymap-prefix "C-c l")           ; Prefix for LSP actions
   (lsp-completion-provider :capf)       ; Using CAPF as the provider
