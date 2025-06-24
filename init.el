@@ -50,12 +50,15 @@
 ;;;; per https://github.com/emacs-lsp/lsp-mode#performance
 (setq read-process-output-max (* 10 1024 1024)) ;; 10mb
 (setq gc-cons-threshold 200000000)
+(setq garbage-collection-messages t)
 
 (setq custom-file "~/.emacs.d/custom.el")
 (when (file-exists-p custom-file)
   (load custom-file 'noerror 'nomessage))
-(load "~/.emacs.d/friendly")
+;; (load "~/.emacs.d/friendly")
 (load "~/.emacs.d/scrolling")
+(xterm-mouse-mode 1)
+(mouse-wheel-mode 1)
 
 (defvar my-lsp-java-mode-map
   (let ((map (make-sparse-keymap)))
@@ -67,6 +70,8 @@
     (define-key map (kbd "C-c c c") #'lsp-treemacs-call-hierarchy)
     (define-key map (kbd "C-c c e") #'lsp-treemacs-errors-list)
     (define-key map (kbd "C-c c o") #'helm-lsp-workspace-symbol)
+    (define-key map (kbd "C-c c n") #'flycheck-next-error)
+    (define-key map (kbd "C-c c p") #'flycheck-previous-error)
     map)
   "Keymap for `my-lsp-java-mode'.")
 
@@ -80,6 +85,11 @@
   ("C-c u" . undo-tree-visualize)
   :hook
   (prog-mode . undo-tree-mode))
+
+(use-package goggles
+  :hook ((prog-mode text-mode) . goggles-mode)
+  :config
+  (setq-default goggles-pulse t)) ;; set to nil to disable pulsing
 
 (use-package conf-space-mode
   :ensure nil
@@ -152,6 +162,9 @@
 
 (use-package project
   :ensure nil
+  :functions
+  mxns/on-project-kill
+  mxns/on-project-switch
   :bind-keymap ("C-c p" . project-prefix-map)
   :config
   (defun mxns/on-project-switch (&rest _)
@@ -214,6 +227,9 @@ Uses file-name-history to find the most recently used file in the project."
   "\\.tf\\'")
 
 (use-package treesit-auto
+  :functions
+  treesit-auto-add-to-auto-mode-alist
+  global-treesit-auto-mode
   :custom
   (treesit-auto-install 'prompt)
   :config
@@ -228,6 +244,8 @@ Uses file-name-history to find the most recently used file in the project."
 
 (use-package nxml-mode
   :ensure nil
+  :init
+  (setq nxml-child-indent 4)
   :hook (nxml-mode . undo-tree-mode))
 
 ;; (use-package bash-ts-mode
@@ -248,9 +266,10 @@ Uses file-name-history to find the most recently used file in the project."
 ;;   "\\.tsx\\'"
 ;;   :hook (typescript-s-mode . electric-pair-mode))
 
-;; (use-package java-ts-mode
-;;   :mode "\\.java\\'"
-;;   :hook (java-ts-mode . electric-pair-mode))
+(use-package java-ts-mode
+  :ensure nil
+  :mode "\\.java\\'"
+  :hook (java-ts-mode . electric-pair-mode))
 
 (use-package apheleia
   :ensure apheleia
@@ -263,11 +282,11 @@ Uses file-name-history to find the most recently used file in the project."
   :config
   (setf (alist-get 'prettier-json apheleia-formatters)
         '("prettier" "--stdin-filepath" filepath))
-  (setf (alist-get 'google-java-format apheleia-formatters)
-        '("java" "-jar" "/Users/mxns/java/google/google-java-format-1.26.0-all-deps.jar" "-"))
+  (setf (alist-get 'prettier-java-plugin apheleia-formatters)
+        '("prettier" "--stdin-filepath" filepath))
   (setf (alist-get 'java-ts-mode apheleia-mode-alist)
-        'google-java-format)
-  (apheleia-global-mode +1))
+        'prettier-java-plugin)
+  (apheleia-global-mode -1))
 
 ;;; thanks to https://www.ovistoica.com/blog/2024-7-05-modern-emacs-typescript-web-tsx-config
 (use-package lsp-mode
