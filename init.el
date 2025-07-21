@@ -42,6 +42,7 @@
 (setq read-file-name-completion-ignore-case t)
 (setq read-buffer-completion-ignore-case t)
 (setq-default indent-tabs-mode nil)
+(setq suggest-key-bindings nil)
 
 ;; (show-paren-mode 1)
 ;; (setq match-paren--idle-timer
@@ -153,7 +154,7 @@
 (use-package hs-minor-mode
   :ensure nil
   :bind
-  (:map hs-minor-mode-map ("C-c v" . hs-toggle-hiding)))
+  (("C-c v" . hs-toggle-hiding)))
 
 (use-package origami-mode
   :ensure nil
@@ -260,11 +261,8 @@ Uses file-name-history to find the most recently used file in the project."
 ;;   (json-ts-mode . hs-minor-mode)
 ;;   (json-ts-mode . electric-pair-mode))
 
-;; (use-package typescript-ts-mode
-;;   :mode
-;;   "\\.ts\\'"
-;;   "\\.tsx\\'"
-;;   :hook (typescript-s-mode . electric-pair-mode))
+(use-package typescript-ts-mode
+  :hook (typescript-s-mode . electric-pair-mode))
 
 (use-package java-ts-mode
   :ensure nil
@@ -303,7 +301,8 @@ Uses file-name-history to find the most recently used file in the project."
            json-ts-mode
            bash-ts-mode
            java-ts-mode
-           python-ts-mode) . lsp-deferred))
+           python-ts-mode) . lsp-deferred)
+         (json-ts-mode . hs-minor-mode))
   :custom
   (lsp-keymap-prefix "C-c l")           ; Prefix for LSP actions
   (lsp-completion-provider :capf)       ; Using CAPF as the provider
