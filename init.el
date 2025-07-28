@@ -61,6 +61,14 @@
 (xterm-mouse-mode 1)
 (mouse-wheel-mode 1)
 
+(when (>= emacs-major-version 28)
+  (setq lock-file-name-transforms
+        '(("\\`/.*/\\([^/]+\\)\\'" "~/.emacs.d/aux/\\1" t))))
+(setq auto-save-file-name-transforms
+      '(("\\`/.*/\\([^/]+\\)\\'" "~/.emacs.d/aux/\\1" t)))
+(setq backup-directory-alist
+      '((".*" . "~/.emacs.d/aux/")))
+
 (defvar my-lsp-java-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c c g") #'lsp-find-definition)
@@ -278,12 +286,19 @@ Uses file-name-history to find the most recently used file in the project."
   :functions
   apheleia-global-mode
   :config
-  (setf (alist-get 'prettier-json apheleia-formatters)
+  (setf (alist-get 'prettier-js apheleia-formatters)
         '("prettier" "--stdin-filepath" filepath))
-  (setf (alist-get 'prettier-java-plugin apheleia-formatters)
+  (setf (alist-get 'typescript-ts-mode apheleia-mode-alist) 'prettier-js
+        (alist-get 'tsx-ts-mode        apheleia-mode-alist) 'prettier-js)
+  (setf (alist-get 'js-ts-mode apheleia-mode-alist) 'prettier-js)
+  
+  ;; (setnf (alist-get 'prettier-ts apheleia-formatters)
+  ;;       '("prettier" "--stdin-filepath" filepath))
+  ;; (setf (alist-get 'typescript-ts-mode apheleia-mode-alist)
+  ;;       'prettier-ts)
+  (setf (alist-get 'prettier-java apheleia-formatters)
         '("prettier" "--stdin-filepath" filepath))
-  (setf (alist-get 'java-ts-mode apheleia-mode-alist)
-        'prettier-java-plugin)
+  (setf (alist-get 'java-ts-mode apheleia-mode-alist) 'prettier-java)
   (apheleia-global-mode -1))
 
 ;;; thanks to https://www.ovistoica.com/blog/2024-7-05-modern-emacs-typescript-web-tsx-config
