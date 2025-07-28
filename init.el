@@ -286,19 +286,21 @@ Uses file-name-history to find the most recently used file in the project."
   :functions
   apheleia-global-mode
   :config
+
+  ;; JavaScript, TypeScript, JSON
   (setf (alist-get 'prettier-js apheleia-formatters)
         '("prettier" "--stdin-filepath" filepath))
   (setf (alist-get 'typescript-ts-mode apheleia-mode-alist) 'prettier-js
         (alist-get 'tsx-ts-mode        apheleia-mode-alist) 'prettier-js)
-  (setf (alist-get 'js-ts-mode apheleia-mode-alist) 'prettier-js)
-  
-  ;; (setnf (alist-get 'prettier-ts apheleia-formatters)
-  ;;       '("prettier" "--stdin-filepath" filepath))
-  ;; (setf (alist-get 'typescript-ts-mode apheleia-mode-alist)
-  ;;       'prettier-ts)
+  (setf (alist-get 'js-ts-mode         apheleia-mode-alist) 'prettier-js)
+  (setf (alist-get 'json-ts-mode       apheleia-mode-alist) 'prettier-js)
+
+  ;; Java
   (setf (alist-get 'prettier-java apheleia-formatters)
         '("prettier" "--stdin-filepath" filepath))
   (setf (alist-get 'java-ts-mode apheleia-mode-alist) 'prettier-java)
+
+  ;; Format on save is annoying
   (apheleia-global-mode -1))
 
 ;;; thanks to https://www.ovistoica.com/blog/2024-7-05-modern-emacs-typescript-web-tsx-config
