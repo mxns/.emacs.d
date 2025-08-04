@@ -415,7 +415,7 @@ If no buffer is found, fallback to opening the most recently used file in the pr
 (use-package lsp-java
   :init
   (setq lsp-java-jdt-download-url
-        "https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.46.1/jdt-language-server-1.46.1-202504011455.tar.gz")
+        "https://www.eclipse.org/downloads/download.php?file=/jdtls/milestones/1.49.0/jdt-language-server-1.49.0-202507311558.tar.gz")
   (setq lsp-java-java-path
         "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/bin/java")
   (setenv "JAVA_HOME"
