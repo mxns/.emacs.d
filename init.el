@@ -8,6 +8,9 @@
 (require 'package)
 (require 'use-package)
 (require 'xref)
+(require 'recentf)
+(recentf-mode 1)
+
 
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
@@ -191,36 +194,48 @@
     (treemacs-remove-project-from-workspace))
 
   (defun mxns/switch-to-first-project-buffer (project-path)
-    "Switch to the first buffer belonging to PROJECT-PATH from file-name-history.
-Uses file-name-history to find the most recently used file in the project."
+    "Switch to the most recently used buffer belonging to PROJECT-PATH.
+If no buffer is found, fallback to opening the most recently used file in the project using `recentf`."
     (interactive
      (list (completing-read "Project: "
                             (project-known-project-roots)
                             nil t)))
-    
-    (let* ((expanded-project-path (expand-file-name project-path))
-           ;; Filter file-name-history for the specified project
-           (project-files (cl-remove-if-not
-                           (lambda (item)
-                             (and (stringp item)
-                                  (string-prefix-p expanded-project-path
-                                                   (expand-file-name item))))
-                           file-name-history))
-           ;; Get first (most recent) item
-           (first-file (car project-files)))
-      
-      (if first-file
-          (let ((existing-buffer (find-buffer-visiting (expand-file-name first-file))))
-            (if existing-buffer
-                (progn
-                  (switch-to-buffer existing-buffer)
-                  (message "Switched to buffer: %s" (buffer-name existing-buffer)))
-              (find-file (expand-file-name first-file))
-              (message "Opened file: %s" first-file)
-              (mxns/on-project-switch)))
-        
-        (message "No files found for project %s in history" project-path))))
 
+    (let* ((expanded-project-path (expand-file-name project-path))
+           ;; Buffers in most-recently-used order
+           (project-buffers (seq-filter
+                             (lambda (buf)
+                               (let ((file (buffer-file-name buf)))
+                                 (and file
+                                      (string-prefix-p expanded-project-path
+                                                       (expand-file-name file)))))
+                             (buffer-list)))
+           (most-recent-buffer (car project-buffers)))
+
+      (cond
+       (most-recent-buffer
+        (switch-to-buffer most-recent-buffer)
+        (message "Switched to buffer: %s" (buffer-name most-recent-buffer))
+        (mxns/on-project-switch))
+
+       (t
+        (let* ((recent-files-in-project
+                (seq-filter
+                 (lambda (file)
+                   (string-prefix-p expanded-project-path
+                                    (expand-file-name file)))
+                 recentf-list))
+               (most-recent-file (car recent-files-in-project)))
+
+          (if most-recent-file
+              (progn
+                (find-file most-recent-file)
+                (message "Opened recent file: %s" most-recent-file)
+                (mxns/on-project-switch))
+            (message "No buffers or recent files found for project %s" project-path)))))))
+
+  
+  
   (global-set-key (kbd "C-c b") 'project-switch-to-buffer)
   (global-set-key (kbd "C-c q") 'mxns/switch-to-first-project-buffer)
   (advice-add 'project-switch-project :after #'mxns/on-project-switch)
