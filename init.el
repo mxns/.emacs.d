@@ -68,6 +68,8 @@
       '(("\\`/.*/\\([^/]+\\)\\'" "~/.emacs.d/aux/\\1" t)))
 (setq backup-directory-alist
       '((".*" . "~/.emacs.d/aux/")))
+(setq undo-tree-history-directory-alist
+      '((".*" . "~/.emacs.d/aux/")))
 
 (defvar my-lsp-java-mode-map
   (let ((map (make-sparse-keymap)))
@@ -88,6 +90,10 @@
   "Minor mode to add Java-specific keybindings."
   :lighter " MyJava"
   :keymap my-lsp-java-mode-map)
+
+(use-package xref
+  :bind (("C-c <left>"  . xref-go-back)
+         ("C-c <right>" . xref-go-forward)))
 
 (use-package undo-tree
   :bind
@@ -225,7 +231,7 @@ Uses file-name-history to find the most recently used file in the project."
 
 (use-package flycheck
   :config
-  (global-flycheck-mode))
+  (add-hook 'after-init-hook #'global-flycheck-mode))
 
 (use-package yasnippet
   :config
@@ -287,20 +293,20 @@ Uses file-name-history to find the most recently used file in the project."
   apheleia-global-mode
   :config
 
-  ;; JavaScript, TypeScript, JSON
+  ;; Add commands to apheleia formatters
   (setf (alist-get 'prettier-js apheleia-formatters)
         '("prettier" "--stdin-filepath" filepath))
+  (setf (alist-get 'prettier-java apheleia-formatters)
+        '("prettier" "--stdin-filepath" filepath))
+
+  ;; Map modes to formatters
   (setf (alist-get 'typescript-ts-mode apheleia-mode-alist) 'prettier-js
         (alist-get 'tsx-ts-mode        apheleia-mode-alist) 'prettier-js)
   (setf (alist-get 'js-ts-mode         apheleia-mode-alist) 'prettier-js)
   (setf (alist-get 'json-ts-mode       apheleia-mode-alist) 'prettier-js)
+  (setf (alist-get 'java-ts-mode       apheleia-mode-alist) 'prettier-java)
 
-  ;; Java
-  (setf (alist-get 'prettier-java apheleia-formatters)
-        '("prettier" "--stdin-filepath" filepath))
-  (setf (alist-get 'java-ts-mode apheleia-mode-alist) 'prettier-java)
-
-  ;; Format on save is annoying
+  ;; Format on save is annoying, use apheleia-format-buffer manually instead
   (apheleia-global-mode -1))
 
 ;;; thanks to https://www.ovistoica.com/blog/2024-7-05-modern-emacs-typescript-web-tsx-config
@@ -318,8 +324,7 @@ Uses file-name-history to find the most recently used file in the project."
            json-ts-mode
            bash-ts-mode
            java-ts-mode
-           python-ts-mode) . lsp-deferred)
-         (json-ts-mode . hs-minor-mode))
+           python-ts-mode) . lsp-deferred))
   :custom
   (lsp-keymap-prefix "C-c l")           ; Prefix for LSP actions
   (lsp-completion-provider :capf)       ; Using CAPF as the provider
@@ -369,7 +374,8 @@ Uses file-name-history to find the most recently used file in the project."
   (lsp-semantic-tokens-enable nil)      ; Related to highlighting, and we defer to treesitter
   
   :init
-  (setq lsp-use-plists nil))
+  (setq lsp-use-plists nil)
+  :bind ("M-RET" . lsp-execute-code-action))
 
 (use-package lsp-treemacs
   :custom (lsp-treemacs-theme "Iconless")
@@ -377,7 +383,18 @@ Uses file-name-history to find the most recently used file in the project."
 
 (use-package helm-lsp)
 
-(use-package lsp-ui)
+(use-package lsp-ui
+  :after lsp-mode
+  :hook (lsp-mode . lsp-ui-mode)
+  :custom
+  (lsp-ui-flycheck-list-position 'bottom)
+  :bind
+  (:map lsp-ui-flycheck-list-mode-map
+        ("RET" . lsp-ui-flycheck-list--visit)
+        ("M-RET" . lsp-ui-flycheck-list--view)
+        ("n" . next-line)
+        ("p" . previous-line)
+        ))
 
 ;;; https://download.eclipse.org/jdtls/milestones/
 (use-package lsp-java
