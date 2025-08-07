@@ -2,16 +2,6 @@
 
 Random stuff that I forget if I don't write it down. Some standard key bindings, some customised inventions.
 
-## Navigation
-
-##### C-SPC C-SPC 
-
-&nbsp; Set mark without activating the region
-
-##### C-u C-SPC
-
-&nbsp; Pop the mark (navigate back to where the mark was last set)
-
 ## Project
 
 ##### C-c q
@@ -50,7 +40,9 @@ Random stuff that I forget if I don't write it down. Some standard key bindings,
 
 ### Update jdtls LSP server
 
-1. Update the `lsp-java-jdt-download-url` from (https://download.eclipse.org/jdtls/milestones/)[https://download.eclipse.org/jdtls/milestones/]
+1. Update the `lsp-java-jdt-download-url` from https://download.eclipse.org/jdtls/milestones/
+
+1. Check the value of `lsp-java-server-install-dir` and delete that directory completely, to ensure a clean installation.
 
 1. `M-x lsp-update-server`
 
@@ -61,3 +53,20 @@ Random stuff that I forget if I don't write it down. Some standard key bindings,
 1. Create the empty file, for example `my/project/Main.java`.
 
 1. Hit `M-TAB` and select `class`, or Type 'class'. If lsp-java and yasnippet is correctly configured, an option to create the boilerplate is displayed.
+
+## Standard commands
+
+A few standard commands that I tend to forget.
+
+##### C-SPC C-SPC 
+
+&nbsp; Set mark without activating the region
+
+##### C-u C-SPC
+
+&nbsp; Pop the mark (navigate back to where the mark was last set)
+
+##### C-M-SPC
+
+&nbsp; Activate region one expression forward
+
