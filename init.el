@@ -59,7 +59,6 @@
 (setq custom-file "~/.emacs.d/custom.el")
 (when (file-exists-p custom-file)
   (load custom-file 'noerror 'nomessage))
-;; (load "~/.emacs.d/friendly")
 (load "~/.emacs.d/scrolling")
 (xterm-mouse-mode 1)
 (mouse-wheel-mode 1)
@@ -167,6 +166,24 @@
 
 (use-package company
   :bind (("M-TAB" . company-complete)))
+
+;; https://protesilaos.com/emacs/dotemacs#h:61863da4-8739-42ae-a30f-6e9d686e1995
+(use-package embark
+  :bind (("C-." . embark-act)
+         :map minibuffer-local-map
+         ("C-e C-c" . embark-collect)
+         ("C-e C-e" . embark-export)))
+
+(use-package embark-consult
+  :ensure t)
+
+;; https://protesilaos.com/emacs/dotemacs#h:9a3581df-ab18-4266-815e-2edd7f7e4852
+(use-package wgrep
+  :ensure t
+  :bind ( :map grep-mode-map
+          ("e" . wgrep-change-to-wgrep-mode)
+          ("C-x C-q" . wgrep-change-to-wgrep-mode)
+          ("C-c C-c" . wgrep-finish-edit)))
 
 (use-package hs-minor-mode
   :ensure nil
