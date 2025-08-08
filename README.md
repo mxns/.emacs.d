@@ -70,3 +70,10 @@ A few standard commands that I tend to forget.
 
 &nbsp; Activate region one expression forward
 
+##### C-x +
+
+&nbsp; Balance windows
+
+##### consult-buffer
+
+&nbsp; Find recent buffers and files.
