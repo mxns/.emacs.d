@@ -77,3 +77,11 @@ A few standard commands that I tend to forget.
 ##### consult-buffer
 
 &nbsp; Find recent buffers and files.
+
+##### consult-theme
+
+&nbsp; Pick a theme with consult.
+
+##### toggle-truncate-lines
+
+&nbsp; That’s a built-in toggle, buffer-local, and reversible.

@@ -54,7 +54,7 @@
 ;;;; per https://github.com/emacs-lsp/lsp-mode#performance
 (setq read-process-output-max (* 10 1024 1024)) ;; 10mb
 (setq gc-cons-threshold 200000000)
-(setq garbage-collection-messages t)
+(setq garbage-collection-messages nil)
 
 (setq custom-file "~/.emacs.d/custom.el")
 (when (file-exists-p custom-file)
@@ -77,14 +77,10 @@
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c c g") #'lsp-find-definition)
     (define-key map (kbd "C-c c f") #'lsp-find-references)
-    (define-key map (kbd "C-c c r") #'lsp-rename)
-    (define-key map (kbd "C-c c x") #'lsp-execute-code-action)
     (define-key map (kbd "C-c c t") #'lsp-java-type-hierarchy)
     (define-key map (kbd "C-c c c") #'lsp-treemacs-call-hierarchy)
     (define-key map (kbd "C-c c e") #'lsp-treemacs-errors-list)
     (define-key map (kbd "C-c c o") #'helm-lsp-workspace-symbol)
-    (define-key map (kbd "C-c c n") #'flycheck-next-error)
-    (define-key map (kbd "C-c c p") #'flycheck-previous-error)
     map)
   "Keymap for `my-lsp-java-mode'.")
 
@@ -92,6 +88,13 @@
   "Minor mode to add Java-specific keybindings."
   :lighter " MyJava"
   :keymap my-lsp-java-mode-map)
+
+(defun my/consult-fd-hidden ()
+  (interactive)
+  (let ((consult-fd-args "fd --hidden"))
+    (consult-fd)))
+
+;; (use-package ranger)
 
 (use-package xref
   :bind (("C-c <left>"  . xref-go-back)
@@ -138,7 +141,9 @@
   :ensure-system-package fd
   :bind
   ("C-c f" . consult-fd)
+  ("C-c F" . #'my/consult-fd-hidden)
   ("C-c g" . consult-ripgrep)
+  ("C-c r" . consult-buffer)
   :init
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
@@ -249,7 +254,7 @@ If no buffer is found, fallback to opening the most recently used file in the pr
                 (find-file most-recent-file)
                 (message "Opened recent file: %s" most-recent-file)
                 (mxns/on-project-switch))
-            (message "No buffers or recent files found for project %s" project-path)))))))
+            (project-switch-project project-path)))))))
 
   
   
@@ -439,3 +444,5 @@ If no buffer is found, fallback to opening the most recently used file in the pr
           "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/"))
 
 ;;; init.el ends here
+(put 'dired-find-alternate-file 'disabled nil)
+(put 'scroll-left 'disabled nil)

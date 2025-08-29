@@ -101,7 +101,7 @@ Otherwise, ACTION is called without arguments."
 (global-set-key (kbd "M-v") (mxns/do-while-preserving-screen-position #'scroll-down-command))
 
 (defun my-digit-argument-wrapper (digit)
-  "Wrapper for digit-argument to be used in transient maps."
+  "Wrapper for `digit-argument' DIGIT to be used in transient maps."
   (interactive "P")
   (universal-argument)
   (universal-argument-more digit))
