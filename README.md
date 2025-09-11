@@ -36,6 +36,10 @@ Random stuff that I forget if I don't write it down. Some standard key bindings,
 
 &nbsp; Use `lsp-execute-code-action` to find actions opportunistically.
 
+##### lsp-ui-sideline-mode
+
+&nbsp; If there is too much sideline information
+
 ## Java development
 
 ### Update jdtls LSP server

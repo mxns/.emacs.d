@@ -70,8 +70,7 @@
       '(("\\`/.*/\\([^/]+\\)\\'" "~/.emacs.d/aux/\\1" t)))
 (setq backup-directory-alist
       '((".*" . "~/.emacs.d/aux/")))
-(setq undo-tree-history-directory-alist
-      '((".*" . "~/.emacs.d/aux/")))
+
 
 (defvar my-lsp-java-mode-map
   (let ((map (make-sparse-keymap)))
@@ -101,20 +100,28 @@
          ("C-c <right>" . xref-go-forward)))
 
 (use-package undo-tree
+  :hook
+  (prog-mode . undo-tree-mode)
+  (conf-space-mode . undo-tree-mode)
+  (yaml-mode . undo-tree-mode)
+  (nxml-mode . undo-tree-mode)
   :bind
   ("C-c u" . undo-tree-visualize)
-  :hook
-  (prog-mode . undo-tree-mode))
+  :config
+  (setq undo-tree-enable-undo-in-region t
+        undo-tree-auto-save-history t
+        undo-tree-history-directory-alist '((".*" . "~/.emacs.d/aux/"))
+        undo-tree-visualizer-timestamps t
+        undo-tree-visualizer-diff t)
+  (make-directory "~/.emacs.d/aux/" t))
 
 (use-package goggles
   :hook ((prog-mode text-mode) . goggles-mode)
   :config
   (setq-default goggles-pulse t)) ;; set to nil to disable pulsing
 
-(use-package conf-space-mode
-  :ensure nil
-  :hook
-  (conf-space-mode . undo-tree-mode))
+;; (use-package conf-space-mode
+;;   :ensure nil)
 
 (use-package vertico
   :custom
@@ -291,14 +298,12 @@ If no buffer is found, fallback to opening the most recently used file in the pr
 (use-package yaml-mode
   :mode
   "\\.yml\\'"
-  "\\.yaml\\'"
-  :hook (yaml-mode . undo-tree-mode))
+  "\\.yaml\\'")
 
 (use-package nxml-mode
   :ensure nil
   :init
-  (setq nxml-child-indent 4)
-  :hook (nxml-mode . undo-tree-mode))
+  (setq nxml-child-indent 4))
 
 ;; (use-package bash-ts-mode
 ;;   :ensure nil
@@ -313,7 +318,7 @@ If no buffer is found, fallback to opening the most recently used file in the pr
 ;;   (json-ts-mode . electric-pair-mode))
 
 (use-package typescript-ts-mode
-  :hook (typescript-s-mode . electric-pair-mode))
+  :hook (typescript-ts-mode . electric-pair-mode))
 
 (use-package java-ts-mode
   :ensure nil
@@ -403,7 +408,7 @@ If no buffer is found, fallback to opening the most recently used file in the pr
   (lsp-modeline-diagnostics-enable nil)  ; Already supported through `flycheck'
   (lsp-modeline-workspace-status-enable nil) ; Modeline displays "LSP" when lsp-mode is enabled
   (lsp-signature-doc-lines 1)                ; Don't raise the echo area. It's distracting
-  (lsp-ui-doc-use-childframe nil)              ; Show docs for symbol at point
+  (lsp-ui-doc-use-childframe t)              ; Show docs for symbol at point
   (lsp-eldoc-render-all nil)            ; This would be very useful if it would respect `lsp-signature-doc-lines', currently it's distracting
   ;; lens
   (lsp-lens-enable t)                 ; Optional, I don't need it
