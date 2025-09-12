@@ -11,7 +11,6 @@
 (require 'recentf)
 (recentf-mode 1)
 
-
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (add-to-list 'load-path "~/.emacs.d/local/")
@@ -33,7 +32,6 @@
 (declare-function lsp-find-definition "lsp" ())
 (declare-function lsp-find-references "lsp" ())
 (declare-function lsp-rename "lsp" ())
-(declare-function lsp-execute-code-action "lsp" ())
 (declare-function treemacs-remove-project-from-workspace "treemacs" ())
 
 (setq confirm-kill-emacs 'y-or-n-p)
@@ -83,21 +81,65 @@
     map)
   "Keymap for `my-lsp-java-mode'.")
 
+
 (define-minor-mode my-lsp-java-mode
   "Minor mode to add Java-specific keybindings."
   :lighter " MyJava"
   :keymap my-lsp-java-mode-map)
 
-(defun my/consult-fd-hidden ()
+
+(defun mxns/consult-fd-hidden ()
+  "Find files in project, including hidden files."
   (interactive)
   (let ((consult-fd-args "fd --hidden"))
     (consult-fd)))
 
+
+(defun mxns/switch-to-first-project-buffer (project-path)
+  "Switch to the most recently used buffer belonging to PROJECT-PATH.
+If no buffer is found, fallback to opening the most recently used file
+in the project using `recentf`."
+  (interactive
+   (list (completing-read "Switch to project: "
+                          (project-known-project-roots)
+                          nil t)))
+  (let* ((expanded-project-path (expand-file-name project-path))
+         ;; Buffers in most-recently-used order
+         (project-buffers (seq-filter
+                           (lambda (buf)
+                             (let ((file (buffer-file-name buf)))
+                               (and file
+                                    (string-prefix-p expanded-project-path
+                                                     (expand-file-name file)))))
+                           (buffer-list)))
+         (most-recent-buffer (car project-buffers)))
+    (cond
+     (most-recent-buffer
+      (switch-to-buffer most-recent-buffer)
+      (message "Switched to buffer: %s" (buffer-name most-recent-buffer)))
+     (t
+      (let* ((recent-files-in-project
+              (seq-filter
+               (lambda (file)
+                 (string-prefix-p expanded-project-path
+                                  (expand-file-name file)))
+               recentf-list))
+             (most-recent-file (car recent-files-in-project)))
+        
+        (if most-recent-file
+            (progn
+              (find-file most-recent-file)
+              (message "Opened recent file: %s" most-recent-file))
+          (project-switch-project project-path)))))))
+
+
 ;; (use-package ranger)
+
 
 (use-package xref
   :bind (("C-c <left>"  . xref-go-back)
          ("C-c <right>" . xref-go-forward)))
+
 
 (use-package undo-tree
   :hook
@@ -115,13 +157,16 @@
         undo-tree-visualizer-diff t)
   (make-directory "~/.emacs.d/aux/" t))
 
+
 (use-package goggles
   :hook ((prog-mode text-mode) . goggles-mode)
   :config
   (setq-default goggles-pulse t)) ;; set to nil to disable pulsing
 
+
 ;; (use-package conf-space-mode
 ;;   :ensure nil)
+
 
 (use-package vertico
   :custom
@@ -132,23 +177,27 @@
   :config
   (vertico-mode))
 
+
 (use-package orderless
   :config
   (setq completion-styles '(orderless)))
 
+
 (use-package savehist
   :config (savehist-mode))
+
 
 (use-package rg
   :ensure-system-package rg
   :hook
   (grep-mode . (lambda () (toggle-truncate-lines 1))))
 
+
 (use-package consult
   :ensure-system-package fd
   :bind
   ("C-c f" . consult-fd)
-  ("C-c F" . #'my/consult-fd-hidden)
+  ("C-c F" . #'mxns/consult-fd-hidden)
   ("C-c g" . consult-ripgrep)
   ("C-c r" . consult-buffer)
   :init
@@ -158,6 +207,7 @@
   (require 'consult-xref)
   :hook
   (completion-list-mode . consult-preview-at-point-mode))
+
 
 (use-package marginalia
   ;; Bind `marginalia-cycle' locally in the minibuffer.  To make the binding
@@ -172,12 +222,15 @@
   ;; package.
   (marginalia-mode))
 
+
 (use-package which-key
   :config
   (which-key-mode))
 
+
 (use-package company
   :bind (("M-TAB" . company-complete)))
+
 
 ;; https://protesilaos.com/emacs/dotemacs#h:61863da4-8739-42ae-a30f-6e9d686e1995
 (use-package embark
@@ -186,8 +239,10 @@
          ("C-e C-c" . embark-collect)
          ("C-e C-e" . embark-export)))
 
+
 (use-package embark-consult
   :ensure t)
+
 
 ;; https://protesilaos.com/emacs/dotemacs#h:9a3581df-ab18-4266-815e-2edd7f7e4852
 (use-package wgrep
@@ -197,93 +252,76 @@
           ("C-x C-q" . wgrep-change-to-wgrep-mode)
           ("C-c C-c" . wgrep-finish-edit)))
 
+
 (use-package hs-minor-mode
   :ensure nil
   :bind
   (("C-c v" . hs-toggle-hiding)))
+
 
 (use-package origami-mode
   :ensure nil
   :bind
   (:map origami-mode-map ("C-c v" . origami-toggle-node)))
 
+
 (use-package project
   :ensure nil
+
+  :bind (("C-c b" . project-switch-to-buffer)
+         ("C-c q" . mxns/switch-to-first-project-buffer))
+  :bind-keymap ("C-c p" . project-prefix-map))
+
+
+(use-package treemacs
   :functions
-  mxns/on-project-kill
-  mxns/on-project-switch
-  :bind-keymap ("C-c p" . project-prefix-map)
+  mxns/treemacs-on-project-switch
+  mxns/treemacs-on-project-kill
+  mxns/switch-to-first-project-buffer
+  
+  :bind
+  ("C-c t" . mxns/treemacs-toggle-preserve-window)
+
   :config
-  (defun mxns/on-project-switch (&rest _)
-    "Function to run after switching projects."
+  (defun mxns/treemacs-on-project-switch (&rest _)
+    "Function to run when switching projects."
     (save-selected-window (treemacs-add-and-display-current-project)))
 
-  (defun mxns/on-project-kill (&rest _)
-    "Function to run after killing projects."
-    (treemacs-remove-project-from-workspace))
-
-  (defun mxns/switch-to-first-project-buffer (project-path)
-    "Switch to the most recently used buffer belonging to PROJECT-PATH.
-If no buffer is found, fallback to opening the most recently used file in the project using `recentf`."
-    (interactive
-     (list (completing-read "Project: "
-                            (project-known-project-roots)
-                            nil t)))
-
-    (let* ((expanded-project-path (expand-file-name project-path))
-           ;; Buffers in most-recently-used order
-           (project-buffers (seq-filter
-                             (lambda (buf)
-                               (let ((file (buffer-file-name buf)))
-                                 (and file
-                                      (string-prefix-p expanded-project-path
-                                                       (expand-file-name file)))))
-                             (buffer-list)))
-           (most-recent-buffer (car project-buffers)))
-
-      (cond
-       (most-recent-buffer
-        (switch-to-buffer most-recent-buffer)
-        (message "Switched to buffer: %s" (buffer-name most-recent-buffer))
-        (mxns/on-project-switch))
-
-       (t
-        (let* ((recent-files-in-project
-                (seq-filter
-                 (lambda (file)
-                   (string-prefix-p expanded-project-path
-                                    (expand-file-name file)))
-                 recentf-list))
-               (most-recent-file (car recent-files-in-project)))
-
-          (if most-recent-file
-              (progn
-                (find-file most-recent-file)
-                (message "Opened recent file: %s" most-recent-file)
-                (mxns/on-project-switch))
-            (project-switch-project project-path)))))))
-
+  (defun mxns/treemacs-on-project-kill (&rest _)
+    "Remove project from Treemacs workspace."
+    (when (fboundp 'treemacs-remove-project-from-workspace)
+      (condition-case err
+          (treemacs-remove-project-from-workspace)
+        (error (message "Treemacs cleanup failed: %s" err)))))
   
-  
-  (global-set-key (kbd "C-c b") 'project-switch-to-buffer)
-  (global-set-key (kbd "C-c q") 'mxns/switch-to-first-project-buffer)
-  (advice-add 'project-switch-project :after #'mxns/on-project-switch)
-  (advice-add 'project-kill-buffers :after #'mxns/on-project-kill))
+  (defun mxns/treemacs-toggle-preserve-window ()
+    "Toggle Treemacs without changing the selected window."
+    (interactive)
+    (save-selected-window
+      (treemacs)))
+
+  (advice-add 'mxns/switch-to-first-project-buffer :after #'mxns/treemacs-on-project-switch)
+  (advice-add 'project-kill-buffers :before #'mxns/treemacs-on-project-kill))
+
 
 (use-package magit
   :bind ("C-c m" . magit-status))
+
 
 (use-package flycheck
   :config
   (add-hook 'after-init-hook #'global-flycheck-mode))
 
+
 (use-package yasnippet
   :config
   (yas-global-mode))
 
+
 (use-package terraform-mode
   :mode
   "\\.tf\\'")
+
 
 (use-package treesit-auto
   :functions
@@ -295,15 +333,18 @@ If no buffer is found, fallback to opening the most recently used file in the pr
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
+
 (use-package yaml-mode
   :mode
   "\\.yml\\'"
   "\\.yaml\\'")
 
+
 (use-package nxml-mode
   :ensure nil
   :init
   (setq nxml-child-indent 4))
+
 
 ;; (use-package bash-ts-mode
 ;;   :ensure nil
@@ -317,13 +358,16 @@ If no buffer is found, fallback to opening the most recently used file in the pr
 ;;   (json-ts-mode . hs-minor-mode)
 ;;   (json-ts-mode . electric-pair-mode))
 
+
 (use-package typescript-ts-mode
   :hook (typescript-ts-mode . electric-pair-mode))
+
 
 (use-package java-ts-mode
   :ensure nil
   :mode "\\.java\\'"
   :hook (java-ts-mode . electric-pair-mode))
+
 
 (use-package apheleia
   :ensure apheleia
@@ -351,10 +395,37 @@ If no buffer is found, fallback to opening the most recently used file in the pr
   ;; Format on save is annoying, use apheleia-format-buffer manually instead
   (apheleia-global-mode -1))
 
+
 ;;; thanks to https://www.ovistoica.com/blog/2024-7-05-modern-emacs-typescript-web-tsx-config
 (use-package lsp-mode
   :diminish "LSP"
+
   :ensure t
+
+  :functions
+  lsp-workspaces
+  mxns/cleanup-lsp-on-project-kill
+
+  :init
+  (setq lsp-use-plists nil)
+
+  :bind
+  ("M-RET" . lsp-execute-code-action)
+
+  :config
+  (defun mxns/cleanup-lsp-on-project-kill (&rest _)
+    "Remove LSP workspace folder when killing project buffers."
+    (when (and (fboundp 'lsp-workspace-folders-remove)
+               (lsp-workspaces))
+      (let ((current-project (project-current)))
+        (when current-project
+          (let ((project-root (project-root current-project)))
+            (condition-case err
+                (lsp-workspace-folders-remove project-root)
+              (error (message "Failed to remove LSP workspace folder: %s" err))))))))
+
+  ;;(advice-add 'project-kill-buffers :after #'mxns/cleanup-lsp-on-project-kill)
+
   :hook ((lsp-mode . lsp-diagnostics-mode)
          (lsp-mode . lsp-enable-which-key-integration)
          (lsp-mode . (lambda ()
@@ -367,6 +438,7 @@ If no buffer is found, fallback to opening the most recently used file in the pr
            bash-ts-mode
            java-ts-mode
            python-ts-mode) . lsp-deferred))
+
   :custom
   (lsp-keymap-prefix "C-c l")           ; Prefix for LSP actions
   (lsp-completion-provider :capf)       ; Using CAPF as the provider
@@ -414,16 +486,15 @@ If no buffer is found, fallback to opening the most recently used file in the pr
   (lsp-lens-enable t)                 ; Optional, I don't need it
   ;; semantic
   (lsp-semantic-tokens-enable nil)      ; Related to highlighting, and we defer to treesitter
-  
-  :init
-  (setq lsp-use-plists nil)
-  :bind ("M-RET" . lsp-execute-code-action))
+  )
+
 
 (use-package lsp-treemacs
-  :custom (lsp-treemacs-theme "Iconless")
-  :bind ("C-c t" . treemacs))
+  :custom (lsp-treemacs-theme "Iconless"))
+
 
 (use-package helm-lsp)
+
 
 (use-package lsp-ui
   :after lsp-mode
