@@ -2,6 +2,14 @@
 
 Random stuff that I forget if I don't write it down. Some standard key bindings, some customised inventions.
 
+## Vertico completion
+
+https://github.com/minad/vertico?tab=readme-ov-file#key-bindings
+
+##### M-RET (vertico-exit-input)
+
+Ignore completion and exit with the minibuffer input
+
 ## Project
 
 ##### C-c q
@@ -22,7 +30,7 @@ Random stuff that I forget if I don't write it down. Some standard key bindings,
 ##### C-c g
 
 &nbsp; Use `rg` to grep in files in current project. Requires `rg` to be installed. Pass command line options after a double dash `--`. Example:
-     `#some-file.txt -- --glob=some-dir/**`
+     `#some-file.txt -- --glob=some-dir/** --glob=some-other-dir/** --no-ignore`
 
 &nbsp; Read the man pages for `rg` for more info on available parameters.
 
