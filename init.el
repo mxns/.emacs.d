@@ -133,6 +133,20 @@ in the project using `recentf`."
           (project-switch-project project-path)))))))
 
 
+(defun mxns/treemacs-toggle-lsp-symbols ()
+  "Toggle LSP Symbols window without changing focus."
+  (interactive)
+  (let ((current-window (selected-window)))
+    (if (get-buffer-window "*Lsp Symbols List*")
+        ;; If symbols window is visible, close it
+        (when-let ((window (get-buffer-window "*Lsp Symbols List*")))
+          (delete-window window))
+      ;; If symbols window is not visible, open it and return focus
+      (progn
+        (lsp-treemacs-symbols)
+        (select-window current-window)))))
+
+
 ;; (use-package ranger)
 
 
@@ -281,6 +295,7 @@ in the project using `recentf`."
   
   :bind
   ("C-c t" . mxns/treemacs-toggle-preserve-window)
+  ("C-c s" . mxns/treemacs-toggle-lsp-symbols)
 
   :config
   (defun mxns/treemacs-on-project-switch (&rest _)
@@ -424,7 +439,7 @@ in the project using `recentf`."
                 (lsp-workspace-folders-remove project-root)
               (error (message "Failed to remove LSP workspace folder: %s" err))))))))
 
-  ;;(advice-add 'project-kill-buffers :after #'mxns/cleanup-lsp-on-project-kill)
+  ;;(advice-add 'project-kill-buffers :after #'mxns/lsp-on-project-kill)
 
   :hook ((lsp-mode . lsp-diagnostics-mode)
          (lsp-mode . lsp-enable-which-key-integration)
