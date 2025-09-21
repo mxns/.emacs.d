@@ -155,12 +155,20 @@ in the project using `recentf`."
          ("C-c <right>" . xref-go-forward)))
 
 
-(use-package undo-tree
+(use-package vundo
   :hook
   (prog-mode . undo-tree-mode)
   (conf-space-mode . undo-tree-mode)
   (yaml-mode . undo-tree-mode)
-  (nxml-mode . undo-tree-mode)
+  (nxml-mode . undo-tree-mode))
+
+
+(use-package undo-tree
+  ;; :hook
+  ;; (prog-mode . undo-tree-mode)
+  ;; (conf-space-mode . undo-tree-mode)
+  ;; (yaml-mode . undo-tree-mode)
+  ;; (nxml-mode . undo-tree-mode)
   :bind
   ("C-c u" . undo-tree-visualize)
   :config
@@ -440,7 +448,7 @@ in the project using `recentf`."
               (error (message "Failed to remove LSP workspace folder: %s" err))))))))
 
   ;;(advice-add 'project-kill-buffers :after #'mxns/lsp-on-project-kill)
-
+  
   :hook ((lsp-mode . lsp-diagnostics-mode)
          (lsp-mode . lsp-enable-which-key-integration)
          (lsp-mode . (lambda ()
@@ -480,6 +488,9 @@ in the project using `recentf`."
   (lsp-ui-doc-enable nil)                ; causes error if X is not available
   (lsp-ui-sideline-show-hover t)      ; Sideline used only for diagnostics
   (lsp-ui-sideline-diagnostic-max-lines 20) ; 20 lines since typescript errors can be quite big
+  (lsp-ui-sideline-show-code-actions t)
+  (lsp-auto-execute-action nil)
+  
   ;; completion
   (lsp-completion-enable t)
   (lsp-completion-enable-additional-text-edit t) ; Ex: auto-insert an import for a completion candidate
