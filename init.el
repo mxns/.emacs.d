@@ -28,10 +28,7 @@
 (defvar ns-right-option-modifier)
 (defvar match-paren--idle-timer nil)
 (defvar match-paren--delay 0.5)
-(declare-function lsp-java-type-hierarchy "lsp-java" ())
-(declare-function lsp-find-definition "lsp" ())
-(declare-function lsp-find-references "lsp" ())
-(declare-function lsp-rename "lsp" ())
+(defvar consult-fd-args)
 (declare-function treemacs-remove-project-from-workspace "treemacs" ())
 
 (setq confirm-kill-emacs 'y-or-n-p)
