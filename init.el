@@ -70,24 +70,6 @@
       '((".*" . "~/.emacs.d/aux/")))
 
 
-(defvar my-lsp-java-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c c g") #'lsp-find-definition)
-    (define-key map (kbd "C-c c f") #'lsp-find-references)
-    (define-key map (kbd "C-c c t") #'lsp-java-type-hierarchy)
-    (define-key map (kbd "C-c c c") #'lsp-treemacs-call-hierarchy)
-    (define-key map (kbd "C-c c e") #'lsp-treemacs-errors-list)
-    (define-key map (kbd "C-c c o") #'helm-lsp-workspace-symbol)
-    map)
-  "Keymap for `my-lsp-java-mode'.")
-
-
-(define-minor-mode my-lsp-java-mode
-  "Minor mode to add Java-specific keybindings."
-  :lighter " MyJava"
-  :keymap my-lsp-java-mode-map)
-
-
 (defun mxns/consult-fd-hidden ()
   "Find files in project, including hidden files."
   (interactive)
@@ -148,6 +130,11 @@ in the project using `recentf`."
 
 
 ;; (use-package ranger)
+
+
+;; (use-package transpose-frame
+;;   :ensure t
+;;   :bind ("C-x 4 t" . transpose-frame))
 
 
 (use-package xref
@@ -446,14 +433,9 @@ in the project using `recentf`."
             (condition-case err
                 (lsp-workspace-folders-remove project-root)
               (error (message "Failed to remove LSP workspace folder: %s" err))))))))
-
-  ;;(advice-add 'project-kill-buffers :after #'mxns/lsp-on-project-kill)
   
   :hook ((lsp-mode . lsp-diagnostics-mode)
          (lsp-mode . lsp-enable-which-key-integration)
-         (lsp-mode . (lambda ()
-                       (when (derived-mode-p 'java-mode)
-                         (my-lsp-java-mode 1))))
          ((tsx-ts-mode
            typescript-ts-mode
            js-ts-mode

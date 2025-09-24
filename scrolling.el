@@ -1,9 +1,7 @@
-;;; -*- lexical-binding: t -*-
-
-;;; stuff.el --- mxns config
+;; navigation ---  -*- lexical-binding: t -*-
 
 ;;; Commentary:
-;;; stuff about stuff
+;;; navigation
 
 ;;; Code:
 
@@ -92,14 +90,6 @@ Otherwise, ACTION is called without arguments."
        (signal (car err) (cdr err)))))
   (scroll-lock-move-to-column scroll-lock-temporary-goal-column))
 
-
-;; (global-set-key (kbd "M-n") #'mxns/scroll-lock-next-line)
-;; (global-set-key (kbd "M-p") #'mxns/scroll-lock-previous-line)
-;; (global-set-key (kbd "M-N") #'scroll-lock-next-line)
-;; (global-set-key (kbd "M-P") #'scroll-lock-previous-line)
-(global-set-key (kbd "C-v") (mxns/do-while-preserving-screen-position #'scroll-up-command))
-(global-set-key (kbd "M-v") (mxns/do-while-preserving-screen-position #'scroll-down-command))
-
 (defun my-digit-argument-wrapper (digit)
   "Wrapper for `digit-argument' DIGIT to be used in transient maps."
   (interactive "P")
@@ -139,6 +129,22 @@ Otherwise, ACTION is called without arguments."
   (mxns/scroll-lock-update-goal-column)
   (set-transient-map mxns/movement-transient-map t))
 
-(global-set-key (kbd "C-c n") #'mxns/activate-movement-map)
+(defvar mxns/nav-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "M-n") 'mxns/scroll-lock-next-line)
+    (define-key map (kbd "M-p") 'mxns/scroll-lock-previous-line)
+    (define-key map (kbd "C-M-n") 'scroll-lock-next-line)
+    (define-key map (kbd "C-M-p") 'scroll-lock-previous-line)
+    map)
+  "Keymap for `mxns/nav-mode'.")
+
+(define-minor-mode mxns/nav-mode
+  "Minor mode to add navigation keybindings."
+  :lighter " nav"
+  :keymap mxns/nav-mode-map)
+
+(global-set-key (kbd "C-c n") #'mxns/nav-mode)
+(global-set-key (kbd "C-v") (mxns/do-while-preserving-screen-position #'scroll-up-command))
+(global-set-key (kbd "M-v") (mxns/do-while-preserving-screen-position #'scroll-down-command))
 
 ;;; scrolling.el ends here
