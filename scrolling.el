@@ -90,45 +90,6 @@ Otherwise, ACTION is called without arguments."
        (signal (car err) (cdr err)))))
   (scroll-lock-move-to-column scroll-lock-temporary-goal-column))
 
-(defun my-digit-argument-wrapper (digit)
-  "Wrapper for `digit-argument' DIGIT to be used in transient maps."
-  (interactive "P")
-  (universal-argument)
-  (universal-argument-more digit))
-
-(defvar mxns/movement-transient-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "n") 'mxns/scroll-lock-next-line)
-    (define-key map (kbd "p") 'mxns/scroll-lock-previous-line)
-    (define-key map (kbd "N") 'scroll-lock-next-line)
-    (define-key map (kbd "P") 'scroll-lock-previous-line)
-    (define-key map (kbd "f") 'forward-char)
-    (define-key map (kbd "b") 'backward-char)
-    (define-key map (kbd "C-f") 'forward-char)
-    (define-key map (kbd "C-b") 'backward-char)
-    (define-key map (kbd "C-n") 'next-line)
-    (define-key map (kbd "C-p") 'previous-line)
-    (define-key map (kbd "M-f") 'forward-word)
-    (define-key map (kbd "M-b") 'backward-word)
-    (define-key map (kbd "1") #'(lambda () (interactive) (my-digit-argument-wrapper 1)))
-    (define-key map (kbd "2") #'(lambda () (interactive) (my-digit-argument-wrapper 2)))
-    (define-key map (kbd "3") #'(lambda () (interactive) (my-digit-argument-wrapper 3)))
-    (define-key map (kbd "4") #'(lambda () (interactive) (my-digit-argument-wrapper 4)))
-    (define-key map (kbd "5") #'(lambda () (interactive) (my-digit-argument-wrapper 5)))
-    (define-key map (kbd "6") #'(lambda () (interactive) (my-digit-argument-wrapper 6)))
-    (define-key map (kbd "7") #'(lambda () (interactive) (my-digit-argument-wrapper 7)))
-    (define-key map (kbd "8") #'(lambda () (interactive) (my-digit-argument-wrapper 8)))
-    (define-key map (kbd "9") #'(lambda () (interactive) (my-digit-argument-wrapper 9)))
-    (define-key map (kbd "0") #'(lambda () (interactive) (my-digit-argument-wrapper 0)))
-    map)
-  "Transient map for word, character, and line movement.")
-
-(defun mxns/activate-movement-map ()
-  "Activate movement map."
-  (interactive)
-  (mxns/scroll-lock-update-goal-column)
-  (set-transient-map mxns/movement-transient-map t))
-
 (defvar mxns/nav-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "M-n") 'mxns/scroll-lock-next-line)
