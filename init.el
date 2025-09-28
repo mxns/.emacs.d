@@ -29,6 +29,10 @@
 (defvar match-paren--idle-timer nil)
 (defvar match-paren--delay 0.5)
 (defvar consult-fd-args)
+(declare-function lsp-java-type-hierarchy "lsp-java" ())
+(declare-function lsp-find-definition "lsp" ())
+(declare-function lsp-find-references "lsp" ())
+(declare-function lsp-rename "lsp" ())
 (declare-function treemacs-remove-project-from-workspace "treemacs" ())
 
 (setq confirm-kill-emacs 'y-or-n-p)
@@ -41,6 +45,7 @@
 (setq read-buffer-completion-ignore-case t)
 (setq-default indent-tabs-mode nil)
 (setq suggest-key-bindings nil)
+(setq delete-by-moving-to-trash t)
 
 ;; (show-paren-mode 1)
 ;; (setq match-paren--idle-timer
@@ -139,29 +144,31 @@ in the project using `recentf`."
          ("C-c <right>" . xref-go-forward)))
 
 
+(use-package display-line-numbers
+  :hook (prog-mode . display-line-numbers-mode))
+
+;; vundo and undo-tree are mutally exclusive
 (use-package vundo
-  :hook
-  (prog-mode . undo-tree-mode)
-  (conf-space-mode . undo-tree-mode)
-  (yaml-mode . undo-tree-mode)
-  (nxml-mode . undo-tree-mode))
-
-
-(use-package undo-tree
-  ;; :hook
-  ;; (prog-mode . undo-tree-mode)
-  ;; (conf-space-mode . undo-tree-mode)
-  ;; (yaml-mode . undo-tree-mode)
-  ;; (nxml-mode . undo-tree-mode)
   :bind
-  ("C-c u" . undo-tree-visualize)
-  :config
-  (setq undo-tree-enable-undo-in-region t
-        undo-tree-auto-save-history t
-        undo-tree-history-directory-alist '((".*" . "~/.emacs.d/aux/"))
-        undo-tree-visualizer-timestamps t
-        undo-tree-visualizer-diff t)
-  (make-directory "~/.emacs.d/aux/" t))
+  ("C-c u" . vundo))
+
+
+;; vundo and undo-tree are mutally exclusive
+;; (use-package undo-tree
+;;   :hook
+;;   (prog-mode . undo-tree-mode)
+;;   (conf-space-mode . undo-tree-mode)
+;;   (yaml-mode . undo-tree-mode)
+;;   (nxml-mode . undo-tree-mode)
+;;   :bind
+;;   ("C-c u" . undo-tree-visualize)
+;;   :config
+;;   (setq undo-tree-enable-undo-in-region t
+;;         undo-tree-auto-save-history t
+;;         undo-tree-history-directory-alist '((".*" . "~/.emacs.d/aux/"))
+;;         undo-tree-visualizer-timestamps t
+;;         undo-tree-visualizer-diff t)
+;;   (make-directory "~/.emacs.d/aux/" t))
 
 
 (use-package goggles
@@ -273,7 +280,6 @@ in the project using `recentf`."
 
 (use-package project
   :ensure nil
-
   :bind (("C-c b" . project-switch-to-buffer)
          ("C-c q" . mxns/switch-to-first-project-buffer))
   :bind-keymap ("C-c p" . project-prefix-map))
@@ -284,6 +290,10 @@ in the project using `recentf`."
   mxns/treemacs-on-project-switch
   mxns/treemacs-on-project-kill
   mxns/switch-to-first-project-buffer
+  lsp-workspace-folders-remove
+
+  :custom
+  (treemacs-git-mode -1)
   
   :bind
   ("C-c t" . mxns/treemacs-toggle-preserve-window)
@@ -298,7 +308,9 @@ in the project using `recentf`."
     "Remove project from Treemacs workspace."
     (when (fboundp 'treemacs-remove-project-from-workspace)
       (condition-case err
-          (treemacs-remove-project-from-workspace)
+          (progn
+            (treemacs-remove-project-from-workspace)
+            (lsp-workspace-folders-remove (project-root (project-current))))
         (error (message "Treemacs cleanup failed: %s" err)))))
   
   (defun mxns/treemacs-toggle-preserve-window ()
@@ -430,6 +442,8 @@ in the project using `recentf`."
             (condition-case err
                 (lsp-workspace-folders-remove project-root)
               (error (message "Failed to remove LSP workspace folder: %s" err))))))))
+
+  ;;(advice-add 'project-kill-buffers :after #'mxns/lsp-on-project-kill)
   
   :hook ((lsp-mode . lsp-diagnostics-mode)
          (lsp-mode . lsp-enable-which-key-integration)

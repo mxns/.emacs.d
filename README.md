@@ -82,6 +82,10 @@ A few standard commands that I tend to forget.
 
 &nbsp; Activate region one expression forward
 
+##### C-x C-x
+
+&nbsp; Put the mark where point is now, and point where the mark is now.
+
 ##### C-x +
 
 &nbsp; Balance windows

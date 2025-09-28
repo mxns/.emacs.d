@@ -94,8 +94,8 @@ Otherwise, ACTION is called without arguments."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "M-n") 'mxns/scroll-lock-next-line)
     (define-key map (kbd "M-p") 'mxns/scroll-lock-previous-line)
-    (define-key map (kbd "C-M-n") 'scroll-lock-next-line)
-    (define-key map (kbd "C-M-p") 'scroll-lock-previous-line)
+    (define-key map (kbd "M-N") 'scroll-lock-next-line)
+    (define-key map (kbd "M-P") 'scroll-lock-previous-line)
     map)
   "Keymap for `mxns/nav-mode'.")
 
