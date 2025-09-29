@@ -291,6 +291,7 @@ in the project using `recentf`."
   mxns/treemacs-on-project-kill
   mxns/switch-to-first-project-buffer
   lsp-workspace-folders-remove
+  treemacs-do-remove-project-from-workspace
 
   :custom
   (treemacs-git-mode -1)
@@ -309,7 +310,7 @@ in the project using `recentf`."
     (when (fboundp 'treemacs-remove-project-from-workspace)
       (condition-case err
           (progn
-            (treemacs-remove-project-from-workspace)
+            (treemacs-do-remove-project-from-workspace (project-root (project-current)))
             (lsp-workspace-folders-remove (project-root (project-current))))
         (error (message "Treemacs cleanup failed: %s" err)))))
   
