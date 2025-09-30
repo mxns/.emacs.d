@@ -29,6 +29,8 @@
 (defvar match-paren--idle-timer nil)
 (defvar match-paren--delay 0.5)
 (defvar consult-fd-args)
+(defvar mxns/window-zoom-p nil "Track window zoom state.")
+
 (declare-function lsp-java-type-hierarchy "lsp-java" ())
 (declare-function lsp-find-definition "lsp" ())
 (declare-function lsp-find-references "lsp" ())
@@ -129,6 +131,29 @@ in the project using `recentf`."
       (progn
         (lsp-treemacs-symbols)
         (select-window current-window)))))
+
+
+(defun mxns/toggle-window-zoom ()
+  "Toggle window zoom state."
+  (interactive)
+  (if mxns/window-zoom-p
+      (condition-case err
+          (progn
+            (jump-to-register ?z)
+            (setq mxns/window-zoom-p nil))
+        (error
+         (setq mxns/window-zoom-p nil)
+         (message "Error while de-zooming window: %s" (error-message-string err))))
+    (progn
+      (window-configuration-to-register ?z)
+      (delete-other-windows)
+      (setq mxns/window-zoom-p t))))
+
+(define-advice delete-other-windows (:after (&rest _) reset-maximized)
+  "Reset the window zoom state toggle."
+  (setq mxns/window-zoom-p nil))
+
+(global-set-key (kbd "C-c z") 'mxns/toggle-window-zoom)
 
 
 ;; (use-package ranger)
