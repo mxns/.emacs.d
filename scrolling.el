@@ -7,6 +7,11 @@
 
 (require 'scroll-lock)
 
+(defgroup mxns nil
+  "Personal customizations."
+  :prefix "mxns/"
+  :group 'convenience)
+
 (defun mxns/do-while-preserving-screen-position (action &optional use-arg)
   "Return a function that perform ACTION while preserving screen position.
 If USE-ARG is provided and ARG is present, ACTION is called with ARG.
@@ -97,12 +102,19 @@ Otherwise, ACTION is called without arguments."
     (define-key map (kbd "M-N") 'scroll-lock-next-line)
     (define-key map (kbd "M-P") 'scroll-lock-previous-line)
     map)
-  "Keymap for `mxns/nav-mode'.")
+  "Keymap for mxns/nav-mode.")
 
 (define-minor-mode mxns/nav-mode
   "Minor mode to add navigation keybindings."
   :lighter " nav"
-  :keymap mxns/nav-mode-map)
+  :keymap mxns/nav-mode-map
+  :group 'mxns)
+
+(define-globalized-minor-mode global-mxns/nav-mode mxns/nav-mode
+  (lambda () (mxns/nav-mode 1))
+  :group 'mxns)
+
+(global-mxns/nav-mode 1)
 
 (global-set-key (kbd "C-c n") #'mxns/nav-mode)
 (global-set-key (kbd "C-v") (mxns/do-while-preserving-screen-position #'scroll-up-command))

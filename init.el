@@ -133,21 +133,27 @@ in the project using `recentf`."
         (select-window current-window)))))
 
 
-(defun mxns/toggle-window-zoom ()
-  "Toggle window zoom state."
+(defun mxns/toggle-window-zoom (&optional arg)
+  "Toggle window zoom state.
+With universal argument ARG, use current configuration."
   (interactive)
-  (if mxns/window-zoom-p
-      (condition-case err
-          (progn
-            (jump-to-register ?z)
-            (setq mxns/window-zoom-p nil))
-        (error
-         (setq mxns/window-zoom-p nil)
-         (message "Error while de-zooming window: %s" (error-message-string err))))
-    (progn
-      (window-configuration-to-register ?z)
-      (delete-other-windows)
-      (setq mxns/window-zoom-p t))))
+  (if arg
+      (progn
+        (window-configuration-to-register ?z)
+        (delete-other-windows)
+        (setq mxns/window-zoom-p t))
+    (if mxns/window-zoom-p
+        (condition-case err
+            (progn
+              (jump-to-register ?z)
+              (setq mxns/window-zoom-p nil))
+          (error
+           (setq mxns/window-zoom-p nil)
+           (message "Error while de-zooming window: %s" (error-message-string err))))
+      (progn
+        (window-configuration-to-register ?z)
+        (delete-other-windows)
+        (setq mxns/window-zoom-p t)))))
 
 (define-advice delete-other-windows (:after (&rest _) reset-maximized)
   "Reset the window zoom state toggle."
@@ -170,7 +176,9 @@ in the project using `recentf`."
 
 
 (use-package display-line-numbers
-  :hook (prog-mode . display-line-numbers-mode))
+  :hook
+  (nxml-mode . display-line-numbers-mode)
+  (prog-mode . display-line-numbers-mode))
 
 ;; vundo and undo-tree are mutally exclusive
 (use-package vundo

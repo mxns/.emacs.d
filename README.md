@@ -2,7 +2,7 @@
 
 Random stuff that I forget if I don't write it down. Some standard key bindings, some customised inventions.
 
-## Vertico completion
+## Completion
 
 https://github.com/minad/vertico?tab=readme-ov-file#key-bindings
 
@@ -25,12 +25,19 @@ Ignore completion and exit with the minibuffer input
 &nbsp; Use `fd` to find files in current project. Requires `fd` to be installed. Pass command line options after a double dash `--`. Example:
      `#some-file.txt -- --hidden`
 
+&nbsp; Use prefix argument to search in selected subdirs.
+
 &nbsp; Read the man pages for `fd` for more info on available parameters.
 
 ##### C-c g
 
 &nbsp; Use `rg` to grep in files in current project. Requires `rg` to be installed. Pass command line options after a double dash `--`. Example:
-     `#some-file.txt -- --glob=some-dir/** --glob=some-other-dir/** --no-ignore`
+     
+     ```
+     #some-file.txt -- --glob=some-dir/** --glob=some-other-dir/** --no-ignore
+     ```
+     
+&nbsp; Use prefix argument to grep in selected subdirs.
 
 &nbsp; Read the man pages for `rg` for more info on available parameters.
 
@@ -70,6 +77,8 @@ Ignore completion and exit with the minibuffer input
 
 A few standard commands that I tend to forget.
 
+#### Navigation and region
+
 ##### C-SPC C-SPC 
 
 &nbsp; Set mark without activating the region
@@ -86,13 +95,23 @@ A few standard commands that I tend to forget.
 
 &nbsp; Put the mark where point is now, and point where the mark is now.
 
+#### Windows
+
 ##### C-x +
 
 &nbsp; Balance windows
 
+#### Find stuff
+
 ##### consult-buffer
 
 &nbsp; Find recent buffers and files.
+
+##### C-c g (rg)
+
+&nbsp; Grep in project. Use prefix argument to grep in selected subdirs.
+
+#### Misc
 
 ##### consult-theme
 
