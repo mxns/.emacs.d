@@ -110,11 +110,18 @@ Otherwise, ACTION is called without arguments."
   :keymap mxns/nav-mode-map
   :group 'mxns)
 
-(define-globalized-minor-mode global-mxns/nav-mode mxns/nav-mode
-  (lambda () (mxns/nav-mode 1))
+(defcustom mxns/nav-mode-include-modes
+  '(text-mode-hook
+    prog-mode-hook
+    conf-mode-hook)
+  "Hooks where mxns/nav-mode should be enabled.
+Most text and programming modes derive from \='text-mode\=' or \='prog-mode\='."
+  :type '(repeat symbol)
   :group 'mxns)
 
-(global-mxns/nav-mode 1)
+;; Add to specific hooks instead of using define-globalized-minor-mode
+(dolist (hook mxns/nav-mode-include-modes)
+  (add-hook hook 'mxns/nav-mode))
 
 (global-set-key (kbd "C-c n") #'mxns/nav-mode)
 (global-set-key (kbd "C-v") (mxns/do-while-preserving-screen-position #'scroll-up-command))

@@ -73,6 +73,9 @@
 (setq backup-directory-alist
       '((".*" . "~/.emacs.d/aux/")))
 
+(add-hook 'occur-hook
+          (lambda ()
+            (switch-to-buffer-other-window "*Occur*")))
 
 (defun mxns/consult-fd-hidden ()
   "Find files in project, including hidden files."
@@ -180,11 +183,32 @@ With universal argument ARG, use current configuration."
   (nxml-mode . display-line-numbers-mode)
   (prog-mode . display-line-numbers-mode))
 
+
 ;; vundo and undo-tree are mutally exclusive
 (use-package vundo
   :bind
   ("C-c u" . vundo))
 
+(use-package undo-fu-session
+  :ensure t
+  :functions
+  global-undo-fu-session-mode
+  :config
+  ;; Store undo session files in ~/.emacs.d/aux
+  (setq undo-fu-session-directory (expand-file-name "aux" user-emacs-directory))
+  
+  ;; Exclude sensitive files
+  (setq undo-fu-session-incompatible-files
+        (list (concat "^" (expand-file-name "~/.secrets/"))))
+  
+  ;; Only enable for specific major modes
+  (setq undo-fu-session-mode-hook-allow-list
+        '(text-mode-hook
+          prog-mode-hook
+          conf-mode-hook))
+  
+  ;; Enable global mode
+  (global-undo-fu-session-mode 1))
 
 ;; vundo and undo-tree are mutally exclusive
 ;; (use-package undo-tree
@@ -205,7 +229,7 @@ With universal argument ARG, use current configuration."
 
 
 (use-package goggles
-  :hook ((prog-mode text-mode) . goggles-mode)
+  :hook ((prog-mode text-mode conf-mode) . goggles-mode)
   :config
   (setq-default goggles-pulse t)) ;; set to nil to disable pulsing
 
@@ -571,6 +595,59 @@ With universal argument ARG, use current configuration."
         "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/bin/java")
   (setenv "JAVA_HOME"
           "/Users/mxns/java/zulu23.32.11-ca-jdk23.0.2-macosx_aarch64/zulu-23.jdk/Contents/Home/"))
+
+
+(defcustom lsp-ui-sideline-cycle-start-state 0
+  "Starting state for `lsp-ui-sideline-cycle-toggle'.
+0: hover off, code-actions off
+1: hover on, code-actions off
+2: hover off, code-actions on
+3: hover on, code-actions on"
+  :type '(choice (const :tag "Both off" 0)
+                 (const :tag "Hover only" 1)
+                 (const :tag "Code actions only" 2)
+                 (const :tag "Both on" 3))
+  :group 'lsp-ui-sideline)
+
+(defvar lsp-ui-sideline-cycle-state 3
+  "Current state in the sideline cycle.
+Initialized from `lsp-ui-sideline-cycle-start-state'.")
+
+(defun lsp-ui-sideline-cycle-toggle ()
+  "Cycle through LSP UI sideline display states.
+State 0: hover off, code-actions off
+State 1: hover on, code-actions off
+State 2: hover off, code-actions on
+State 3: hover on, code-actions on"
+  (interactive)
+  ;; Initialize state if nil
+  (unless lsp-ui-sideline-cycle-state
+    (setq lsp-ui-sideline-cycle-state lsp-ui-sideline-cycle-start-state))
+  
+  ;; Advance to next state
+  (setq lsp-ui-sideline-cycle-state
+        (mod (1+ lsp-ui-sideline-cycle-state) 4))
+  
+  ;; Apply settings based on state
+  (pcase lsp-ui-sideline-cycle-state
+    (0 (setq lsp-ui-sideline-show-hover nil
+             lsp-ui-sideline-show-code-actions nil)
+       (message "LSP UI Sideline: Both off"))
+    (1 (setq lsp-ui-sideline-show-hover t
+             lsp-ui-sideline-show-code-actions nil)
+       (message "LSP UI Sideline: Hover only"))
+    (2 (setq lsp-ui-sideline-show-hover nil
+             lsp-ui-sideline-show-code-actions t)
+       (message "LSP UI Sideline: Code actions only"))
+    (3 (setq lsp-ui-sideline-show-hover t
+             lsp-ui-sideline-show-code-actions t)
+       (message "LSP UI Sideline: Both on")))
+  
+  ;; Refresh if lsp-ui-mode is active
+  (when (bound-and-true-p lsp-ui-mode)
+    (lsp-ui-sideline--run)))
+
+(global-set-key (kbd "C-c l t") 'lsp-ui-sideline-cycle-toggle)
 
 ;;; init.el ends here
 (put 'dired-find-alternate-file 'disabled nil)
