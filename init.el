@@ -62,6 +62,7 @@
 (when (file-exists-p custom-file)
   (load custom-file 'noerror 'nomessage))
 (load "~/.emacs.d/scrolling")
+(load "~/.emacs.d/sql-connect")
 (xterm-mouse-mode 1)
 (mouse-wheel-mode 1)
 
@@ -266,10 +267,13 @@ With universal argument ARG, use current configuration."
 (use-package consult
   :ensure-system-package fd
   :bind
-  ("C-c f" . consult-fd)
-  ("C-c F" . #'mxns/consult-fd-hidden)
-  ("C-c g" . consult-ripgrep)
-  ("C-c r" . consult-buffer)
+  (("C-c f" . consult-fd)
+   ("C-c F" . #'mxns/consult-fd-hidden)
+   ("C-c g" . consult-ripgrep)
+   ("C-c r" . consult-buffer)
+   ("C-<tab>" . consult-buffer)
+   :map vertico-map
+   ("C-<tab>". vertico-next))
   :init
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
@@ -536,10 +540,6 @@ With universal argument ARG, use current configuration."
   (lsp-enable-symbol-highlighting t)     ; Shows usages of symbol at point in the current buffer
   (lsp-enable-text-document-color nil)   ; This is Treesitter's job
 
-  (lsp-ui-doc-enable nil)                ; causes error if X is not available
-  (lsp-ui-sideline-show-hover t)      ; Sideline used only for diagnostics
-  (lsp-ui-sideline-diagnostic-max-lines 20) ; 20 lines since typescript errors can be quite big
-  (lsp-ui-sideline-show-code-actions t)
   (lsp-auto-execute-action nil)
   
   ;; completion
@@ -557,7 +557,6 @@ With universal argument ARG, use current configuration."
   (lsp-modeline-diagnostics-enable nil)  ; Already supported through `flycheck'
   (lsp-modeline-workspace-status-enable nil) ; Modeline displays "LSP" when lsp-mode is enabled
   (lsp-signature-doc-lines 1)                ; Don't raise the echo area. It's distracting
-  (lsp-ui-doc-use-childframe t)              ; Show docs for symbol at point
   (lsp-eldoc-render-all nil)            ; This would be very useful if it would respect `lsp-signature-doc-lines', currently it's distracting
   ;; lens
   (lsp-lens-enable t)                 ; Optional, I don't need it
@@ -578,6 +577,11 @@ With universal argument ARG, use current configuration."
   :hook (lsp-mode . lsp-ui-mode)
   :custom
   (lsp-ui-flycheck-list-position 'bottom)
+  (lsp-ui-doc-enable nil)                ; causes error if X is not available
+  (lsp-ui-sideline-show-hover t)      ; Sideline used only for diagnostics
+  (lsp-ui-sideline-diagnostic-max-lines 20) ; 20 lines since typescript errors can be quite big
+  (lsp-ui-sideline-show-code-actions t)
+  (lsp-ui-doc-use-childframe t)              ; Show docs for symbol at point
   :bind
   (:map lsp-ui-flycheck-list-mode-map
         ("RET" . lsp-ui-flycheck-list--visit)
