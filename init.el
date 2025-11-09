@@ -35,7 +35,6 @@
 (declare-function lsp-find-definition "lsp" ())
 (declare-function lsp-find-references "lsp" ())
 (declare-function lsp-rename "lsp" ())
-(declare-function treemacs-remove-project-from-workspace "treemacs" ())
 
 (setq confirm-kill-emacs 'y-or-n-p)
 (setq ns-right-option-modifier 'option)
@@ -61,7 +60,8 @@
 (setq custom-file "~/.emacs.d/custom.el")
 (when (file-exists-p custom-file)
   (load custom-file 'noerror 'nomessage))
-(load "~/.emacs.d/scrolling")
+(load "~/.emacs.d/navigation")
+(load "~/.emacs.d/project-easy")
 (load "~/.emacs.d/sql-connect")
 (xterm-mouse-mode 1)
 (mouse-wheel-mode 1)
@@ -83,58 +83,6 @@
   (interactive)
   (let ((consult-fd-args "fd --hidden"))
     (consult-fd)))
-
-
-(defun mxns/switch-to-first-project-buffer (project-path)
-  "Switch to the most recently used buffer belonging to PROJECT-PATH.
-If no buffer is found, fallback to opening the most recently used file
-in the project using `recentf`."
-  (interactive
-   (list (completing-read "Switch to project: "
-                          (project-known-project-roots)
-                          nil t)))
-  (let* ((expanded-project-path (expand-file-name project-path))
-         ;; Buffers in most-recently-used order
-         (project-buffers (seq-filter
-                           (lambda (buf)
-                             (let ((file (buffer-file-name buf)))
-                               (and file
-                                    (string-prefix-p expanded-project-path
-                                                     (expand-file-name file)))))
-                           (buffer-list)))
-         (most-recent-buffer (car project-buffers)))
-    (cond
-     (most-recent-buffer
-      (switch-to-buffer most-recent-buffer)
-      (message "Switched to buffer: %s" (buffer-name most-recent-buffer)))
-     (t
-      (let* ((recent-files-in-project
-              (seq-filter
-               (lambda (file)
-                 (string-prefix-p expanded-project-path
-                                  (expand-file-name file)))
-               recentf-list))
-             (most-recent-file (car recent-files-in-project)))
-        
-        (if most-recent-file
-            (progn
-              (find-file most-recent-file)
-              (message "Opened recent file: %s" most-recent-file))
-          (project-switch-project project-path)))))))
-
-
-(defun mxns/treemacs-toggle-lsp-symbols ()
-  "Toggle LSP Symbols window without changing focus."
-  (interactive)
-  (let ((current-window (selected-window)))
-    (if (get-buffer-window "*Lsp Symbols List*")
-        ;; If symbols window is visible, close it
-        (when-let ((window (get-buffer-window "*Lsp Symbols List*")))
-          (delete-window window))
-      ;; If symbols window is not visible, open it and return focus
-      (progn
-        (lsp-treemacs-symbols)
-        (select-window current-window)))))
 
 
 (defun mxns/toggle-window-zoom (&optional arg)
@@ -173,6 +121,11 @@ With universal argument ARG, use current configuration."
 ;;   :ensure t
 ;;   :bind ("C-x 4 t" . transpose-frame))
 
+(use-package delight
+  :ensure t
+  :config
+  (delight '((eldoc-mode nil "eldoc")
+             (mxns/nav-mode nil "nav"))))
 
 (use-package xref
   :bind (("C-c <left>"  . xref-go-back)
@@ -230,6 +183,7 @@ With universal argument ARG, use current configuration."
 
 
 (use-package goggles
+  :delight
   :hook ((prog-mode text-mode conf-mode) . goggles-mode)
   :config
   (setq-default goggles-pulse t)) ;; set to nil to disable pulsing
@@ -298,11 +252,13 @@ With universal argument ARG, use current configuration."
 
 
 (use-package which-key
+  :delight
   :config
   (which-key-mode))
 
 
 (use-package company
+  :delight
   :bind (("M-TAB" . company-complete)))
 
 
@@ -339,52 +295,6 @@ With universal argument ARG, use current configuration."
   (:map origami-mode-map ("C-c v" . origami-toggle-node)))
 
 
-(use-package project
-  :ensure nil
-  :bind (("C-c b" . project-switch-to-buffer)
-         ("C-c q" . mxns/switch-to-first-project-buffer))
-  :bind-keymap ("C-c p" . project-prefix-map))
-
-
-(use-package treemacs
-  :functions
-  mxns/treemacs-on-project-switch
-  mxns/treemacs-on-project-kill
-  mxns/switch-to-first-project-buffer
-  lsp-workspace-folders-remove
-  treemacs-do-remove-project-from-workspace
-
-  :custom
-  (treemacs-git-mode -1)
-  
-  :bind
-  ("C-c t" . mxns/treemacs-toggle-preserve-window)
-  ("C-c s" . mxns/treemacs-toggle-lsp-symbols)
-
-  :config
-  (defun mxns/treemacs-on-project-switch (&rest _)
-    "Function to run when switching projects."
-    (save-selected-window (treemacs-add-and-display-current-project)))
-
-  (defun mxns/treemacs-on-project-kill (&rest _)
-    "Remove project from Treemacs workspace."
-    (when (fboundp 'treemacs-remove-project-from-workspace)
-      (condition-case err
-          (progn
-            (treemacs-do-remove-project-from-workspace (project-root (project-current)))
-            (lsp-workspace-folders-remove (project-root (project-current))))
-        (error (message "Treemacs cleanup failed: %s" err)))))
-  
-  (defun mxns/treemacs-toggle-preserve-window ()
-    "Toggle Treemacs without changing the selected window."
-    (interactive)
-    (save-selected-window
-      (treemacs)))
-
-  (advice-add 'mxns/switch-to-first-project-buffer :after #'mxns/treemacs-on-project-switch)
-  (advice-add 'project-kill-buffers :before #'mxns/treemacs-on-project-kill))
-
-
 (use-package magit
   :bind ("C-c m" . magit-status))
 
@@ -395,6 +305,7 @@ With universal argument ARG, use current configuration."
 
 
 (use-package yasnippet
+  :delight yas-minor-mode
   :config
   (yas-global-mode))
 
@@ -485,7 +396,8 @@ With universal argument ARG, use current configuration."
 
   :functions
   lsp-workspaces
-  mxns/cleanup-lsp-on-project-kill
+  lsp-workspace-folders-remove
+  ;; mxns/lsp-kill-project
 
   :init
   (setq lsp-use-plists nil)
@@ -494,18 +406,15 @@ With universal argument ARG, use current configuration."
   ("M-RET" . lsp-execute-code-action)
 
   :config
-  (defun mxns/cleanup-lsp-on-project-kill (&rest _)
-    "Remove LSP workspace folder when killing project buffers."
-    (when (and (fboundp 'lsp-workspace-folders-remove)
-               (lsp-workspaces))
-      (let ((current-project (project-current)))
-        (when current-project
-          (let ((project-root (project-root current-project)))
-            (condition-case err
-                (lsp-workspace-folders-remove project-root)
-              (error (message "Failed to remove LSP workspace folder: %s" err))))))))
+  ;; (defun mxns/lsp-kill-project (&rest _)
+  ;;   "Remove LSP workspace folders."
+  ;;   (let ((root (project-root (project-current))))
+  ;;     (when (y-or-n-p (format "Remove LSP folders for project %s?" root))
+  ;;       (condition-case err
+  ;;           (lsp-workspace-folders-remove root)
+  ;;         (error (message "Failed to remove LSP folders from peojct %s: %s" root err))))))
 
-  ;;(advice-add 'project-kill-buffers :after #'mxns/lsp-on-project-kill)
+  ;;(advice-add 'project-kill-buffers :before #'mxns/lsp-kill-project)
   
   :hook ((lsp-mode . lsp-diagnostics-mode)
          (lsp-mode . lsp-enable-which-key-integration)
