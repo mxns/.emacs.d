@@ -48,7 +48,7 @@ If no recent file is found, fallback to user selection via
 
 
 (defun mxns/project-kill-project ()
-  "Remove project from Treemacs workspace."
+  "Remove from Treemacs workspace, remove LSP workspace folders, and kill buffers."
   (interactive)
   (let ((root (project-root (project-current))))
     (progn
@@ -72,7 +72,8 @@ If no recent file is found, fallback to user selection via
   :bind (("C-c b" . project-switch-to-buffer)
          ("C-c a" . mxns/project-switch-project)
          ("C-c q" . mxns/project-kill-project))
-  :bind-keymap ("C-c p" . project-prefix-map))
+  :bind-keymap
+  ("C-c p" . mxns/project-prefix-map))
 
 
 (use-package treemacs
@@ -133,5 +134,26 @@ If no recent file is found, fallback to user selection via
 
 ;; Add to mode-line-misc-info
 (add-to-list 'mode-line-misc-info '(:eval (mxns/project-mode-line)) t)
+
+
+(defvar mxns/project-prefix-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "f" 'consult-fd)
+    (define-key map "g" 'consult-ripgrep)
+    (define-key map "a" 'mxns/project-switch-project)
+    (define-key map "q" 'mxns/project-kill-project)
+    (define-key map "r" 'project-query-replace-regexp)
+    (define-key map "b" 'project-switch-to-buffer)
+    (define-key map "p" 'project-switch-project)
+    (define-key map "d" 'project-find-dir)
+    (define-key map "D" 'project-dired)
+    (define-key map "v" 'project-vc-dir)
+    (define-key map "\C-b" 'project-list-buffers)
+    ;; (define-key map "F" 'project-or-external-find-file)
+    ;; (define-key map "k" 'project-kill-buffers)
+    ;; (define-key map "G" 'project-or-external-find-regexp)
+    map)
+  "Keymap for project commands.")
+
 
 ;;; project-easy.el ends here

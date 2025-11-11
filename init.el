@@ -254,7 +254,19 @@ With universal argument ARG, use current configuration."
 (use-package which-key
   :delight
   :config
-  (which-key-mode))
+  (which-key-mode 1)
+  (which-key-add-keymap-based-replacements mxns/project-prefix-map
+    "f" "Find file (fd)"
+    "g" "Grep (ripgrep)"
+    "r" "Query replace regexp"
+    "b" "Switch to buffer"
+    "C-b" "List buffers"
+    "p" "Open project"
+    "a" "Switch project"
+    "q" "Kill project"
+    "d" "Find directory"
+    "D" "Open in Dired"
+    "v" "VC directory"))
 
 
 (use-package company
@@ -363,7 +375,7 @@ With universal argument ARG, use current configuration."
 
 (use-package apheleia
   :ensure apheleia
-  :diminish ""
+  :delight
   :defines
   apheleia-formatters
   apheleia-mode-alist
