@@ -130,7 +130,9 @@ With universal argument ARG, use current configuration."
 
 (use-package xref
   :bind (("C-c <left>"  . xref-go-back)
-         ("C-c <right>" . xref-go-forward)))
+         ("C-c <right>" . xref-go-forward)
+         ("C-c b"  . xref-go-back)
+         ("C-c f" . xref-go-forward)))
 
 
 (use-package display-line-numbers
