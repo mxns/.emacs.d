@@ -30,6 +30,7 @@
 (defvar match-paren--delay 0.5)
 (defvar consult-fd-args)
 (defvar mxns/window-zoom-p nil "Track window zoom state.")
+(defvar undo-fu-session-mode-hook-allow-list)
 
 (declare-function lsp-java-type-hierarchy "lsp-java" ())
 (declare-function lsp-find-definition "lsp" ())
@@ -162,7 +163,7 @@ With universal argument ARG, use current configuration."
           conf-mode-hook))
   
   ;; Enable global mode
-  (global-undo-fu-session-mode 1))
+  (undo-fu-session-global-mode 1))
 
 ;; vundo and undo-tree are mutally exclusive
 ;; (use-package undo-tree
@@ -221,10 +222,7 @@ With universal argument ARG, use current configuration."
 (use-package consult
   :ensure-system-package fd
   :bind
-  (("C-c f" . consult-fd)
-   ("C-c F" . #'mxns/consult-fd-hidden)
-   ("C-c g" . consult-ripgrep)
-   ("C-c r" . consult-buffer)
+  (("C-c r" . consult-buffer)
    ("C-<tab>" . consult-buffer)
    :map vertico-map
    ("C-<tab>". vertico-next))
@@ -295,16 +293,15 @@ With universal argument ARG, use current configuration."
           ("C-c C-c" . wgrep-finish-edit)))
 
 
-(use-package hs-minor-mode
-  :ensure nil
-  :bind
-  (("C-c v" . hs-toggle-hiding)))
-
-
-(use-package origami-mode
-  :ensure nil
-  :bind
-  (:map origami-mode-map ("C-c v" . origami-toggle-node)))
+(use-package vimish-fold
+  :ensure t
+  :config
+  (vimish-fold-global-mode 1)
+  :bind (("C-c v f" . vimish-fold)
+         ("C-c v u" . vimish-fold-unfold)
+         ("C-c v t" . vimish-fold-toggle)
+         ("C-c v d" . vimish-fold-delete)
+         ("C-c v D" . vimish-fold-delete-all)))
 
 
 (use-package magit
@@ -572,7 +569,7 @@ State 3: hover on, code-actions on"
   (when (bound-and-true-p lsp-ui-mode)
     (lsp-ui-sideline--run)))
 
-(global-set-key (kbd "C-c l t") 'lsp-ui-sideline-cycle-toggle)
+(global-set-key (kbd "C-c i") 'lsp-ui-sideline-cycle-toggle)
 
 ;;; init.el ends here
 (put 'dired-find-alternate-file 'disabled nil)

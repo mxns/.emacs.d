@@ -69,9 +69,6 @@ If no recent file is found, fallback to user selection via
 
 (use-package project
   :ensure nil
-  :bind (("C-c b" . project-switch-to-buffer)
-         ("C-c a" . mxns/project-switch-project)
-         ("C-c q" . mxns/project-kill-project))
   :bind-keymap
   ("C-c p" . mxns/project-prefix-map))
 
