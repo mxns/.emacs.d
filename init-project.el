@@ -77,7 +77,6 @@ If no recent file is found, fallback to user selection via
   :functions
   mxns/treemacs-switch-project
   mxns/project-switch-project
-  lsp-workspace-folders-remove
   treemacs-do-remove-project-from-workspace
 
   :init
