@@ -1,4 +1,4 @@
-;;; lsp-config.el --- mxns config -*- lexical-binding: t; -*-
+;;; init-lsp.el --- mxns config -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 ;;; My LSP configuration
@@ -188,4 +188,4 @@ State 3: hover on, code-actions on"
 (global-set-key (kbd "C-c i") 'lsp-ui-sideline-cycle-toggle)
 
 
-;;; lsp-config.el ends here
+;;; init-lsp.el ends here

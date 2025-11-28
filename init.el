@@ -29,6 +29,7 @@
 (defvar consult-fd-args)
 (defvar mxns/window-zoom-p nil "Track window zoom state.")
 (defvar undo-fu-session-mode-hook-allow-list)
+(defvar mxns/project-prefix-map)
 
 (setq confirm-kill-emacs 'y-or-n-p)
 (setq ns-right-option-modifier 'option)
@@ -215,6 +216,18 @@ With universal argument ARG, use current configuration."
   (grep-mode . (lambda () (toggle-truncate-lines 1))))
 
 
+;; https://protesilaos.com/emacs/dotemacs#h:61863da4-8739-42ae-a30f-6e9d686e1995
+(use-package embark
+  :bind (("C-." . embark-act)
+         :map minibuffer-local-map
+         ("C-e C-c" . embark-collect)
+         ("C-e C-e" . embark-export)))
+
+
+(use-package embark-consult
+  :ensure t)
+
+
 (use-package consult
   :ensure-system-package fd
   :bind
@@ -251,7 +264,7 @@ With universal argument ARG, use current configuration."
   (which-key-mode 1)
   (which-key-add-keymap-based-replacements mxns/project-prefix-map
     "f" "Find file (fd)"
-    "g" "Grep (ripgrep)"
+    "g" "Grep (rg)"
     "r" "Query replace regexp"
     "b" "Switch to buffer"
     "C-b" "List buffers"
@@ -266,18 +279,6 @@ With universal argument ARG, use current configuration."
 (use-package company
   :delight
   :bind (("M-TAB" . company-complete)))
-
-
-;; https://protesilaos.com/emacs/dotemacs#h:61863da4-8739-42ae-a30f-6e9d686e1995
-(use-package embark
-  :bind (("C-." . embark-act)
-         :map minibuffer-local-map
-         ("C-e C-c" . embark-collect)
-         ("C-e C-e" . embark-export)))
-
-
-(use-package embark-consult
-  :ensure t)
 
 
 ;; https://protesilaos.com/emacs/dotemacs#h:9a3581df-ab18-4266-815e-2edd7f7e4852

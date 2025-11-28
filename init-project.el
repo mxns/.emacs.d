@@ -1,4 +1,4 @@
-;;; project-easy.el --- mxns config -*- lexical-binding: t; -*-
+;;; init-project.el --- mxns config -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -152,4 +152,4 @@ If no recent file is found, fallback to user selection via
   "Keymap for project commands.")
 
 
-;;; project-easy.el ends here
+;;; init-project.el ends here
