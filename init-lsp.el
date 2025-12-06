@@ -22,24 +22,12 @@
   :functions
   lsp-workspaces
   lsp-workspace-folders-remove
-  ;; mxns/lsp-kill-project
 
   :init
   (setq lsp-use-plists nil)
 
   :bind
   ("M-RET" . lsp-execute-code-action)
-
-  :config
-  ;; (defun mxns/lsp-kill-project (&rest _)
-  ;;   "Remove LSP workspace folders."
-  ;;   (let ((root (project-root (project-current))))
-  ;;     (when (y-or-n-p (format "Remove LSP folders for project %s?" root))
-  ;;       (condition-case err
-  ;;           (lsp-workspace-folders-remove root)
-  ;;         (error (message "Failed to remove LSP folders from peojct %s: %s" root err))))))
-
-  ;;(advice-add 'project-kill-buffers :before #'mxns/lsp-kill-project)
   
   :hook ((lsp-mode . lsp-diagnostics-mode)
          (lsp-mode . lsp-enable-which-key-integration)

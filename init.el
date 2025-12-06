@@ -58,7 +58,7 @@
 (load "~/.emacs.d/init-nav")
 (load "~/.emacs.d/init-project")
 (load "~/.emacs.d/init-sql-client")
-(load "~/.emacs.d/init-lsp")
+(load "~/.emacs.d/init-eglot")
 (xterm-mouse-mode 1)
 (mouse-wheel-mode 1)
 
@@ -278,7 +278,9 @@ With universal argument ARG, use current configuration."
 
 (use-package company
   :delight
-  :bind (("M-TAB" . company-complete)))
+  :bind (("M-TAB" . company-complete))
+  :init
+  (global-company-mode))
 
 
 ;; https://protesilaos.com/emacs/dotemacs#h:9a3581df-ab18-4266-815e-2edd7f7e4852
