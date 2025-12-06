@@ -5,6 +5,7 @@
 ;;; Code:
 
 (defvar recentf-list)
+(declare-function neo-global--window-exists-p "neotree")
 (declare-function project-root "treemacs" (project))
 
 (defun mxns/project-switch-project (project-path)
@@ -73,47 +74,99 @@ If no recent file is found, fallback to user selection via
   ("C-c p" . mxns/project-prefix-map))
 
 
-(use-package treemacs
-  :functions
-  mxns/treemacs-switch-project
-  mxns/project-switch-project
-  treemacs-do-remove-project-from-workspace
-
-  :init
-  (setq project-kill-buffers-display-buffer-list t)
-
-  :custom
-  (treemacs-git-mode -1)
-  
-  :bind
-  ("C-c s" . mxns/treemacs-toggle-lsp-symbols)
-  ("C-c t" . mxns/treemacs-toggle-preserve-window)
-
+(use-package neotree
+  :ensure t
+  :bind (("C-c t" . neotree-project-root-toggle))
   :config
-  (defun mxns/treemacs-toggle-lsp-symbols ()
-    "Toggle LSP Symbols window without changing focus."
-    (interactive)
-    (let ((current-window (selected-window)))
-      (if (get-buffer-window "*Lsp Symbols List*")
-          ;; If symbols window is visible, close it
-          (when-let ((window (get-buffer-window "*Lsp Symbols List*")))
-            (delete-window window))
-        ;; If symbols window is not visible, open it and return focus
-        (progn
-          (lsp-treemacs-symbols)
-          (select-window current-window)))))
-
-  (defun mxns/treemacs-toggle-preserve-window ()
-    "Toggle Treemacs without changing the selected window."
-    (interactive)
+  (setq neo-show-hidden-files t)
+  (setq neo-autorefresh t)
+  (setq neo-theme 'arrow)
+  (setq neo-smart-open nil)
+  (setq neo-window-width 30)
+  
+  ;; Function to open neotree at project root
+  (defun neotree-project-root-toggle ())
+  
+  (defun neotree-project-root ()
+  "Open neotree at the project root and find current file."
+  (interactive)
+  (let* ((project-root (if-let ((project (project-current)))
+                           (project-root project)
+                         default-directory))
+         (current-file (buffer-file-name)))
     (save-selected-window
-      (treemacs)))
+      (if (neo-global--window-exists-p)
+          (progn
+            (neotree-dir project-root)
+            (when current-file (neotree-find current-file)))
+        (progn
+          (neotree-show)
+          (neotree-dir project-root)
+          (when current-file
+            (run-with-idle-timer 0.1 nil
+                                 (lambda ()
+                                   (save-selected-window
+                                     (neotree-find current-file))))))))))
 
-  (defun mxns/treemacs-switch-project (&rest _)
-    "Function to run when switching projects."
-    (save-selected-window (treemacs-add-and-display-current-project)))
+  (defun neotree-project-root-toggle ()
+    "Toggle neotree at the project root and find current file."
+    (interactive)
+    (if (neo-global--window-exists-p)
+        (neotree-hide)
+      (neotree-project-root)))
+  
+  (defun neotree-project-root-after-switch (&rest _args)
+    "Open neotree at project root after switching projects."
+    (message "neotree-project-root-after-switch call")
+    (when (and (project-current)
+               (not current-prefix-arg))  ; skip if called with C-u
+      (neotree-project-root)))
+  
+  (advice-add 'mxns/project-switch-project :after #'neotree-project-root-after-switch)
+  )
 
-  (advice-add 'mxns/project-switch-project :after #'mxns/treemacs-switch-project))
+
+;; (use-package treemacs
+;;   :functions
+;;   mxns/treemacs-switch-project
+;;   mxns/project-switch-project
+;;   treemacs-do-remove-project-from-workspace
+
+;;   :init
+;;   (setq project-kill-buffers-display-buffer-list t)
+
+;;   :custom
+;;   (treemacs-git-mode -1)
+  
+;;   :bind
+;;   ("C-c s" . mxns/treemacs-toggle-lsp-symbols)
+;;   ("C-c t" . mxns/treemacs-toggle-preserve-window)
+
+;;   :config
+;;   (defun mxns/treemacs-toggle-lsp-symbols ()
+;;     "Toggle LSP Symbols window without changing focus."
+;;     (interactive)
+;;     (let ((current-window (selected-window)))
+;;       (if (get-buffer-window "*Lsp Symbols List*")
+;;           ;; If symbols window is visible, close it
+;;           (when-let ((window (get-buffer-window "*Lsp Symbols List*")))
+;;             (delete-window window))
+;;         ;; If symbols window is not visible, open it and return focus
+;;         (progn
+;;           (lsp-treemacs-symbols)
+;;           (select-window current-window)))))
+
+;;   (defun mxns/treemacs-toggle-preserve-window ()
+;;     "Toggle Treemacs without changing the selected window."
+;;     (interactive)
+;;     (save-selected-window
+;;       (treemacs)))
+
+;;   (defun mxns/treemacs-switch-project (&rest _)
+;;     "Function to run when switching projects."
+;;     (save-selected-window (treemacs-add-and-display-current-project)))
+
+;;   (advice-add 'mxns/project-switch-project :after #'mxns/treemacs-switch-project))
 
 
 
