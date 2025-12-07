@@ -126,4 +126,4 @@ Most text and programming modes derive from \='text-mode\=' or \='prog-mode\='."
 (global-set-key (kbd "C-v") (mxns/do-while-preserving-screen-position #'scroll-up-command))
 (global-set-key (kbd "M-v") (mxns/do-while-preserving-screen-position #'scroll-down-command))
 
-;;; navigation.el ends here
+;;; init-nav.el ends here

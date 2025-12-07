@@ -29,7 +29,6 @@
 (defvar consult-fd-args)
 (defvar mxns/window-zoom-p nil "Track window zoom state.")
 (defvar undo-fu-session-mode-hook-allow-list)
-(defvar mxns/project-prefix-map)
 
 (setq confirm-kill-emacs 'y-or-n-p)
 (setq ns-right-option-modifier 'option)
@@ -262,18 +261,7 @@ With universal argument ARG, use current configuration."
   :delight
   :config
   (which-key-mode 1)
-  (which-key-add-keymap-based-replacements mxns/project-prefix-map
-    "f" "Find file (fd)"
-    "g" "Grep (rg)"
-    "r" "Query replace regexp"
-    "b" "Switch to buffer"
-    "C-b" "List buffers"
-    "p" "Open project"
-    "a" "Switch project"
-    "q" "Kill project"
-    "d" "Find directory"
-    "D" "Open in Dired"
-    "v" "VC directory"))
+  )
 
 
 (use-package company
