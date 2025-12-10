@@ -13,13 +13,8 @@
    (js-mode . eglot-ensure)
    (java-mode . eglot-ensure)
    (python-mode . eglot-ensure))
-  
-  :bind (:map eglot-mode-map
-              ("C-c l a" . eglot-code-actions)
-              ("C-c l r" . eglot-rename)
-              ("C-c l f" . eglot-format)
-              ("C-c l d" . eldoc-doc-buffer)  ; show documentation
-              ("C-c l e" . flymake-show-project-diagnostics))
+
+  :bind-keymap ("C-c l" . mxns/eglot-prefix-map)
   
   :config
   ;; Shutdown server when last buffer is killed
@@ -57,6 +52,30 @@
 (use-package breadcrumb
   :ensure t
   :hook (eglot-managed-mode . breadcrumb-mode))
+
+(defvar mxns/eglot-prefix-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "a" 'eglot-code-actions)
+    (define-key map "r" 'eglot-rename)
+    (define-key map "d" 'eldoc-doc-buffer)
+    (define-key map "e" 'flymake-show-project-diagnostics)
+    (define-key map "b" 'flymake-show-buffer-diagnostics)
+    (define-key map "c" 'consult-flymake)
+    (define-key map "n" 'flymake-goto-next-error)
+    (define-key map "p" 'flymake-goto-prev-error)
+    map)
+  "Keymap for code commands.")
+
+(which-key-add-keymap-based-replacements mxns/eglot-prefix-map
+    "a" "Code Actions"
+    "r" "Rename"
+    "d" "Doc"
+    "e" "Project diagnostics"
+    "b" "Buffer diagnostics"
+    "c" "Consult Flymake"
+    "n" "Next Error"
+    "p" "Prev Error"
+    )
 
 
 ;;; init-eglot.el ends here

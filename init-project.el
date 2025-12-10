@@ -76,15 +76,20 @@ If no recent file is found, fallback to user selection via
 
 (use-package neotree
   :ensure t
-  :bind (("C-c t" . neotree-project-root-toggle)
-         ("C-c T" . neotree-project-collapse-others))
+  :bind
+  (("C-c t" . neotree-project-root-toggle)
+   ("C-c T" . neotree-project-collapse-others))
+  :hook
+  (neotree-mode . hl-line-mode)
+  :custom-face
+  (hl-line ((t (:inverse-video t))))
   :config
   (setq neo-show-hidden-files t)
   (setq neo-autorefresh t)
   (setq neo-theme 'arrow)
-  (setq neo-smart-open nil)
+  (setq neo-smart-open t)
   (setq neo-window-width 30)
-  
+
   (defun neotree-project-root ()
     "Open neotree at the project root and find current file."
     (interactive)
@@ -128,7 +133,8 @@ If no recent file is found, fallback to user selection via
                (not current-prefix-arg))  ; skip if called with C-u
       (neotree-project-root)))
   
-  (advice-add 'mxns/project-switch-project :after #'neotree-project-root-after-switch))
+  (advice-add 'mxns/project-switch-project :after #'neotree-project-root-after-switch)
+)
 
 
 
