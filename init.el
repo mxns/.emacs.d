@@ -9,6 +9,8 @@
 (require 'use-package)
 (require 'xref)
 (require 'recentf)
+(require 'ansi-color)
+
 (recentf-mode 1)
 
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
@@ -61,6 +63,7 @@
 (xterm-mouse-mode 1)
 (mouse-wheel-mode 1)
 
+
 (when (>= emacs-major-version 28)
   (setq lock-file-name-transforms
         '(("\\`/.*/\\([^/]+\\)\\'" "~/.emacs.d/aux/\\1" t))))
@@ -69,15 +72,10 @@
 (setq backup-directory-alist
       '((".*" . "~/.emacs.d/aux/")))
 
+
 (add-hook 'occur-hook
           (lambda ()
             (switch-to-buffer-other-window "*Occur*")))
-
-(defun mxns/consult-fd-hidden ()
-  "Find files in project, including hidden files."
-  (interactive)
-  (let ((consult-fd-args "fd --hidden"))
-    (consult-fd)))
 
 
 (defun mxns/toggle-window-zoom (&optional arg)
@@ -109,6 +107,15 @@ With universal argument ARG, use current configuration."
 (global-set-key (kbd "C-c z") 'mxns/toggle-window-zoom)
 
 
+(defun mxns/ansi-colorize-buffer ()
+  "Interpret ANSI escape sequences in the current buffer."
+  (interactive)
+  (let ((inhibit-read-only t))
+    (save-excursion
+      (with-silent-modifications
+        (ansi-color-apply-on-region (point-min) (point-max))))))
+
+
 ;; (use-package ranger)
 
 
@@ -116,11 +123,13 @@ With universal argument ARG, use current configuration."
 ;;   :ensure t
 ;;   :bind ("C-x 4 t" . transpose-frame))
 
+
 (use-package delight
   :ensure t
   :config
   (delight '((eldoc-mode nil "eldoc")
              (mxns/nav-mode nil "nav"))))
+
 
 (use-package xref
   :bind (("C-c <left>"  . xref-go-back)
@@ -293,11 +302,6 @@ With universal argument ARG, use current configuration."
 
 (use-package magit
   :bind ("C-c m" . magit-status))
-
-
-(use-package flycheck
-  :config
-  (add-hook 'after-init-hook #'global-flycheck-mode))
 
 
 (use-package yasnippet

@@ -13,6 +13,12 @@
 (declare-function lsp-rename "lsp" ())
 (declare-function lsp-ui-sideline--run "lsp-ui" ())
 
+
+(use-package flycheck
+  :config
+  (add-hook 'after-init-hook #'global-flycheck-mode))
+
+
 ;;; thanks to https://www.ovistoica.com/blog/2024-7-05-modern-emacs-typescript-web-tsx-config
 (use-package lsp-mode
   :diminish "LSP"

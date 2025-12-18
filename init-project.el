@@ -68,6 +68,26 @@ If no recent file is found, fallback to user selection via
       (project-kill-buffers))))
 
 
+(defun mxns/tree-compile ()
+  "Choose and run a compile command for current project."
+  (interactive)
+  (if (boundp 'mxns/tree-compile-commands)
+      (let ((cmd (completing-read
+                  "Compile command: "
+                  mxns/tree-compile-commands
+                  nil nil nil nil
+                  (car mxns/tree-compile-commands))))
+        (compile cmd))
+    (call-interactively 'compile)))  ; Fallback to normal compile
+
+
+;; Mark variable as safe when it's a list of strings
+(put 'mxns/tree-compile-commands 'safe-local-variable
+     (lambda (val)
+       (and (listp val)
+            (seq-every-p #'stringp val))))
+
+
 (use-package project
   :ensure nil
   :bind-keymap
@@ -158,6 +178,7 @@ If no recent file is found, fallback to user selection via
     (define-key map "f" 'consult-fd)
     (define-key map "g" 'consult-ripgrep)
     (define-key map "a" 'mxns/project-switch-project)
+    (define-key map "c" 'mxns/tree-compile)
     (define-key map "q" 'mxns/project-kill-project)
     (define-key map "r" 'project-query-replace-regexp)
     (define-key map "b" 'project-switch-to-buffer)
@@ -175,14 +196,16 @@ If no recent file is found, fallback to user selection via
 (which-key-add-keymap-based-replacements mxns/project-prefix-map
     "f" "Find file (fd)"
     "g" "Grep (rg)"
+    "a" "Switch project"
+    "c" "Compile"
+    "q" "Kill project"
     "r" "Query replace regexp"
     "b" "Switch to buffer"
-    "C-b" "List buffers"
     "p" "Open project"
-    "a" "Switch project"
-    "q" "Kill project"
     "d" "Find directory"
     "D" "Open in Dired"
-    "v" "VC directory")
+    "v" "VC directory"
+    "C-b" "List buffers"
+    )
 
 ;;; init-project.el ends here

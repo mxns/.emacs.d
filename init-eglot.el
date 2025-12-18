@@ -9,10 +9,11 @@
   :ensure t
   :hook
   ;; Enable for your languages - adjust as needed
-  ((typescript-mode . eglot-ensure)
-   (js-mode . eglot-ensure)
-   (java-mode . eglot-ensure)
-   (python-mode . eglot-ensure))
+  ((tsx-ts-mode . eglot-ensure)
+   (typescript-ts-mode . eglot-ensure)
+   (js-ts-mode . eglot-ensure)
+   (java-ts-mode . eglot-ensure)
+   (python-ts-mode . eglot-ensure))
 
   :bind-keymap ("C-c l" . mxns/eglot-prefix-map)
   
@@ -57,10 +58,10 @@
   (let ((map (make-sparse-keymap)))
     (define-key map "a" 'eglot-code-actions)
     (define-key map "r" 'eglot-rename)
-    (define-key map "d" 'eldoc-doc-buffer)
-    (define-key map "e" 'flymake-show-project-diagnostics)
-    (define-key map "b" 'flymake-show-buffer-diagnostics)
-    (define-key map "c" 'consult-flymake)
+    (define-key map "e" 'eldoc-doc-buffer)
+    (define-key map "D" 'flymake-show-project-diagnostics)
+    (define-key map "d" 'flymake-show-buffer-diagnostics)
+    (define-key map "f" 'consult-flymake)
     (define-key map "n" 'flymake-goto-next-error)
     (define-key map "p" 'flymake-goto-prev-error)
     map)
@@ -69,10 +70,10 @@
 (which-key-add-keymap-based-replacements mxns/eglot-prefix-map
     "a" "Code Actions"
     "r" "Rename"
-    "d" "Doc"
-    "e" "Project diagnostics"
-    "b" "Buffer diagnostics"
-    "c" "Consult Flymake"
+    "e" "Eldoc"
+    "D" "Project diagnostics"
+    "d" "Buffer diagnostics"
+    "f" "Consult Flymake"
     "n" "Next Error"
     "p" "Prev Error"
     )
