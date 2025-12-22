@@ -74,12 +74,9 @@ If no project buffers remain, invoke `project-switch-project'."
   (interactive)
   (let* ((proj (project-current))
          (current-buf (current-buffer)))
-    (message "[DEBUG] Current buffer: %s" (buffer-name current-buf))
     (if (not proj)
         ;; Not in a project, just kill normally
-        (progn
-          (message "[DEBUG] Not in a project, killing normally")
-          (kill-buffer current-buf))
+        (kill-buffer current-buf)
       ;; In a project - find other project buffers BEFORE killing
       (let* ((project-buffers (project-buffers proj))
              (other-project-buffers
@@ -95,30 +92,15 @@ If no project buffers remain, invoke `project-switch-project'."
                                   (memq buf project-buffers))))
                          (buffer-list)))
              (target-buffer (car other-project-buffers)))
-        (message "[DEBUG] Total project buffers: %d" (length project-buffers))
-        (message "[DEBUG] Project buffer names: %s"
-                 (mapconcat #'buffer-name project-buffers ", "))
-        (message "[DEBUG] Filtered project buffers (excluding special): %d"
-                 (length other-project-buffers))
-        (message "[DEBUG] Filtered buffer names: %s"
-                 (mapconcat #'buffer-name other-project-buffers ", "))
-        (message "[DEBUG] Target buffer: %s"
-                 (if target-buffer (buffer-name target-buffer) "nil"))
         (if target-buffer
             (progn
               ;; Switch first, then kill - avoids Emacs auto-switching to random buffer
-              (message "[DEBUG] Switching to target buffer: %s" (buffer-name target-buffer))
               (switch-to-buffer target-buffer)
-              (message "[DEBUG] After switch, current buffer: %s" (buffer-name (current-buffer)))
-              (kill-buffer current-buf)
-              (message "[DEBUG] After kill, current buffer: %s" (buffer-name (current-buffer))))
-          ;; Last buffer in project - kill and let user decide next action
-          (message "[DEBUG] No other project buffers, calling project-switch-project")
+              (kill-buffer current-buf))
+          ;; Last buffer in project - show VC dir and let user decide next action
           (let ((project-root (project-root proj)))
             (kill-buffer current-buf)
             (vc-dir project-root)
-            (message "[DEBUG] After kill, before project-switch-project, current buffer: %s"
-                     (buffer-name (current-buffer)))
             (project-switch-project project-root)))))))
 
 
