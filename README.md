@@ -120,3 +120,9 @@ A few standard commands that I tend to forget.
 ##### toggle-truncate-lines
 
 &nbsp; That’s a built-in toggle, buffer-local, and reversible.
+
+##### Use `yank-from-kill-ring` in minibuffer
+
+      1. Type C-y to yank the most recent kill (paste).
+
+      2. Press M-y (Alt + y) to cycle through the kill ring.

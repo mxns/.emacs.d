@@ -6,13 +6,14 @@
 ;;; Code:
 
 (use-package eglot
+  :delight
   :ensure t
   :hook
   ;; Enable for your languages - adjust as needed
   ((tsx-ts-mode . eglot-ensure)
    (typescript-ts-mode . eglot-ensure)
    (js-ts-mode . eglot-ensure)
-   (java-ts-mode . eglot-ensure)
+   (java-ts-mode . eglot-java-mode)
    (python-ts-mode . eglot-ensure))
 
   :bind-keymap ("C-c l" . mxns/eglot-prefix-map)
@@ -46,11 +47,13 @@
 
 ;; Better documentation popups
 (use-package eldoc-box
+  :delight
   :ensure t
   :hook (eglot-managed-mode . eldoc-box-hover-at-point-mode))
 
 ;; Breadcrumb in headerline (optional but nice)
 (use-package breadcrumb
+  :delight
   :ensure t
   :hook (eglot-managed-mode . breadcrumb-mode))
 

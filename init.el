@@ -333,6 +333,7 @@ With universal argument ARG, use current configuration."
 
 
 (use-package nxml-mode
+  :delight
   :ensure nil
   :init
   (setq nxml-child-indent 4))
@@ -352,16 +353,19 @@ With universal argument ARG, use current configuration."
 
 
 (use-package typescript-ts-mode
+  :delight
   :hook (typescript-ts-mode . electric-pair-mode))
 
 
 (use-package java-ts-mode
+  :delight
   :ensure nil
   :mode "\\.java\\'"
   :hook (java-ts-mode . electric-pair-mode))
 
 
 (use-package apheleia
+  :delight
   :ensure apheleia
   :delight
   :defines
