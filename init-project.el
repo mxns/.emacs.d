@@ -68,6 +68,60 @@ If no recent file is found, fallback to user selection via
       (project-kill-buffers))))
 
 
+(defun mxns/kill-buffer-project-aware ()
+  "Kill current buffer and switch to most recent buffer in same project.
+If no project buffers remain, invoke `project-switch-project'."
+  (interactive)
+  (let* ((proj (project-current))
+         (current-buf (current-buffer)))
+    (message "[DEBUG] Current buffer: %s" (buffer-name current-buf))
+    (if (not proj)
+        ;; Not in a project, just kill normally
+        (progn
+          (message "[DEBUG] Not in a project, killing normally")
+          (kill-buffer current-buf))
+      ;; In a project - find other project buffers BEFORE killing
+      (let* ((project-buffers (project-buffers proj))
+             (other-project-buffers
+              (seq-filter (lambda (buf)
+                           (let ((name (buffer-name buf)))
+                             (and (not (eq buf current-buf))
+                                  (not (minibufferp buf))
+                                  (buffer-live-p buf)
+                                  ;; Exclude internal buffers (names starting with space)
+                                  (not (string-prefix-p " " name))
+                                  ;; Exclude special buffers (names starting with *)
+                                  (not (string-prefix-p "*" name))
+                                  (memq buf project-buffers))))
+                         (buffer-list)))
+             (target-buffer (car other-project-buffers)))
+        (message "[DEBUG] Total project buffers: %d" (length project-buffers))
+        (message "[DEBUG] Project buffer names: %s"
+                 (mapconcat #'buffer-name project-buffers ", "))
+        (message "[DEBUG] Filtered project buffers (excluding special): %d"
+                 (length other-project-buffers))
+        (message "[DEBUG] Filtered buffer names: %s"
+                 (mapconcat #'buffer-name other-project-buffers ", "))
+        (message "[DEBUG] Target buffer: %s"
+                 (if target-buffer (buffer-name target-buffer) "nil"))
+        (if target-buffer
+            (progn
+              ;; Switch first, then kill - avoids Emacs auto-switching to random buffer
+              (message "[DEBUG] Switching to target buffer: %s" (buffer-name target-buffer))
+              (switch-to-buffer target-buffer)
+              (message "[DEBUG] After switch, current buffer: %s" (buffer-name (current-buffer)))
+              (kill-buffer current-buf)
+              (message "[DEBUG] After kill, current buffer: %s" (buffer-name (current-buffer))))
+          ;; Last buffer in project - kill and let user decide next action
+          (message "[DEBUG] No other project buffers, calling project-switch-project")
+          (let ((project-root (project-root proj)))
+            (kill-buffer current-buf)
+            (vc-dir project-root)
+            (message "[DEBUG] After kill, before project-switch-project, current buffer: %s"
+                     (buffer-name (current-buffer)))
+            (project-switch-project project-root)))))))
+
+
 (defun mxns/tree-compile ()
   "Choose and run a compile command for current project."
   (interactive)
@@ -187,8 +241,8 @@ If no recent file is found, fallback to user selection via
     (define-key map "D" 'project-dired)
     (define-key map "v" 'project-vc-dir)
     (define-key map "\C-b" 'project-list-buffers)
+    (define-key map "k" 'mxns/kill-buffer-project-aware)
     ;; (define-key map "F" 'project-or-external-find-file)
-    ;; (define-key map "k" 'project-kill-buffers)
     ;; (define-key map "G" 'project-or-external-find-regexp)
     map)
   "Keymap for project commands.")
@@ -206,6 +260,7 @@ If no recent file is found, fallback to user selection via
     "D" "Open in Dired"
     "v" "VC directory"
     "C-b" "List buffers"
+    "k" "Kill buffer (project)"
     )
 
 ;;; init-project.el ends here
