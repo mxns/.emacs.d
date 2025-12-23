@@ -68,10 +68,11 @@ If no recent file is found, fallback to user selection via
       (project-kill-buffers))))
 
 
-(defun mxns/kill-buffer-project-aware ()
+(defun mxns/kill-buffer-project-aware (arg)
   "Kill current buffer and switch to most recent buffer in same project.
+With prefix argument, kill all other project buffers instead.
 If no project buffers remain, invoke `project-switch-project'."
-  (interactive)
+  (interactive "P")
   (let* ((proj (project-current))
          (current-buf (current-buffer)))
     (if (not proj)
@@ -92,16 +93,20 @@ If no project buffers remain, invoke `project-switch-project'."
                                   (memq buf project-buffers))))
                          (buffer-list)))
              (target-buffer (car other-project-buffers)))
-        (if target-buffer
-            (progn
-              ;; Switch first, then kill - avoids Emacs auto-switching to random buffer
-              (switch-to-buffer target-buffer)
-              (kill-buffer current-buf))
-          ;; Last buffer in project - show VC dir and let user decide next action
-          (let ((project-root (project-root proj)))
-            (kill-buffer current-buf)
-            (vc-dir project-root)
-            (project-switch-project project-root)))))))
+        (if arg
+            ;; With prefix arg: kill all other project buffers
+            (mapc #'kill-buffer other-project-buffers)
+          ;; Without prefix arg: original behavior
+          (if target-buffer
+              (progn
+                ;; Switch first, then kill - avoids Emacs auto-switching to random buffer
+                (switch-to-buffer target-buffer)
+                (kill-buffer current-buf))
+            ;; Last buffer in project - show VC dir and let user decide next action
+            (let ((project-root (project-root proj)))
+              (kill-buffer current-buf)
+              (vc-dir project-root)
+              (project-switch-project project-root))))))))
 
 
 (defun mxns/tree-compile ()
