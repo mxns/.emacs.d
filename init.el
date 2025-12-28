@@ -20,6 +20,9 @@
 (package-initialize)
 ;;; (package-refresh-contents)
 
+(tool-bar-mode 0)
+(menu-bar-mode 0)
+
 ;;; Make the byte-compiler happy and get rid of warnings.
 (defvar origami-mode-map)
 (defvar hs-minor-mode-map)
