@@ -69,42 +69,59 @@ If no recent file is found, fallback to user selection via
 
 
 (defun mxns/kill-buffer-project-aware (arg)
-  "Kill current buffer and switch to most recent buffer in same project.
+  "Kill buffer (with completion) and switch to most recent buffer in same project.
 With prefix argument, kill all other project buffers instead.
 If no project buffers remain, invoke `project-switch-project'."
   (interactive "P")
-  (let* ((proj (project-current))
-         (current-buf (current-buffer)))
+  (let* ((proj (project-current)))
     (if (not proj)
-        ;; Not in a project, just kill normally
-        (kill-buffer current-buf)
-      ;; In a project - find other project buffers BEFORE killing
+        ;; Not in a project - simple kill
+        (kill-buffer (if arg
+                        (current-buffer)
+                      (get-buffer (read-buffer "Kill buffer: " 
+                                              (current-buffer) 
+                                              t))))
+      ;; In a project - compute filtered buffers ONCE at the start
       (let* ((project-buffers (project-buffers proj))
-             (other-project-buffers
+             (filtered-project-buffers
               (seq-filter (lambda (buf)
                            (let ((name (buffer-name buf)))
-                             (and (not (eq buf current-buf))
-                                  (not (minibufferp buf))
+                             (and (not (minibufferp buf))
                                   (buffer-live-p buf)
-                                  ;; Exclude internal buffers (names starting with space)
                                   (not (string-prefix-p " " name))
-                                  ;; Exclude special buffers (names starting with *)
                                   (not (string-prefix-p "*" name))
                                   (memq buf project-buffers))))
-                         (buffer-list)))
+                         project-buffers))
+             (buffer-to-kill
+              (if arg
+                  (current-buffer)
+                ;; Use the already-filtered list for completion
+                (get-buffer 
+                 (completing-read "Kill buffer: "
+                                 (mapcar #'buffer-name filtered-project-buffers)
+                                 nil t nil nil
+                                 (buffer-name (current-buffer))))))
+             ;; Now compute other buffers from the SAME filtered list
+             (other-project-buffers
+              (seq-filter (lambda (buf)
+                           (not (eq buf buffer-to-kill)))
+                         filtered-project-buffers))
              (target-buffer (car other-project-buffers)))
+        
+        ;; Handle the different cases
         (if arg
-            ;; With prefix arg: kill all other project buffers
-            (mapc #'kill-buffer other-project-buffers)
-          ;; Without prefix arg: original behavior
+            ;; Prefix arg: kill all other project buffers
+            (when (yes-or-no-p (format "Kill %d other project buffers? "
+                                      (length other-project-buffers)))
+              (mapc #'kill-buffer other-project-buffers))
+          ;; No prefix: kill one and switch
           (if target-buffer
               (progn
-                ;; Switch first, then kill - avoids Emacs auto-switching to random buffer
                 (switch-to-buffer target-buffer)
-                (kill-buffer current-buf))
-            ;; Last buffer in project - show VC dir and let user decide next action
+                (kill-buffer buffer-to-kill))
+            ;; Last buffer in project
             (let ((project-root (project-root proj)))
-              (kill-buffer current-buf)
+              (kill-buffer buffer-to-kill)
               (vc-dir project-root)
               (project-switch-project project-root))))))))
 
