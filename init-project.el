@@ -15,9 +15,7 @@ in the project using `recentf'.
 If no recent file is found, fallback to user selection via
 `project-switch-project'p."
   (interactive
-   (list (completing-read "Switch to project: "
-                          (project-known-project-roots)
-                          nil t)))
+   (list (project-prompt-project-dir)))
   (let* ((expanded-project-path (expand-file-name project-path))
          ;; Buffers in most-recently-used order
          (project-buffers (seq-filter
