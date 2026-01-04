@@ -48,24 +48,32 @@ If no recent file is found, fallback to user selection via
           (project-switch-project project-path)))))))
 
 
-(defun mxns/project-kill-project ()
-  "Remove from Treemacs workspace, remove LSP workspace folders, and kill buffers."
-  (interactive)
-  (let ((root (project-root (project-current))))
-    (progn
-      (when (and
-             (fboundp 'treemacs-do-remove-project-from-workspace)
-             (y-or-n-p (format "Remove project %s from Treemacs workspace?" root)))
-        (condition-case err
-            (treemacs-do-remove-project-from-workspace root)
-          (error (message "Failed to remove project %s from Treemacs workspace: %s" root err))))
-      (when (and
-             (fboundp 'lsp-workspace-folders-remove)
-             (y-or-n-p (format "Remove LSP folders for project %s?" root)))
-        (condition-case err
-            (lsp-workspace-folders-remove root)
-          (error (message "Failed to remove LSP folders for project %s: %s" root err))))
-      (project-kill-buffers))))
+(defun mxns/project-kill-project (arg)
+  "Kill the buffers belonging to the current project. Only the buffers that match a condition in
+`project-kill-buffer-conditions' will be killed. With the prefix argument, kill the buffers belonging
+to all other projects instead, using the same conditions."
+  (interactive "P")
+  (if arg
+      (if-let ((current-proj (project-current)))
+          (let* ((current-root (project-root current-proj))
+                 (other-project-bufs
+                  (seq-filter
+                   (lambda (buf)
+                     (when-let ((buf-proj (with-current-buffer buf
+                                            (project-current))))
+                       ;; Buffer belongs to a different project
+                       (and (not (equal (project-root buf-proj) current-root))
+                            ;; And it matches the kill conditions
+                            (project--buffer-check buf project-kill-buffer-conditions))))
+                   (buffer-list))))
+            (if other-project-bufs
+                (when (yes-or-no-p (format "Kill %d buffers from other projects? "
+                                           (length other-project-bufs)))
+                  (mapc #'kill-buffer other-project-bufs)
+                  (message "Killed %d buffers from other projects" (length other-project-bufs)))
+              (message "No buffers from other projects to kill")))
+        (message "Not in a project"))
+    (project-kill-buffers)))
 
 
 (defun mxns/kill-buffer-project-aware (arg)
@@ -85,45 +93,49 @@ If no project buffers remain, invoke `project-switch-project'."
       (let* ((project-buffers (project-buffers proj))
              (filtered-project-buffers
               (seq-filter (lambda (buf)
-                           (let ((name (buffer-name buf)))
-                             (and (not (minibufferp buf))
-                                  (buffer-live-p buf)
-                                  (not (string-prefix-p " " name))
-                                  (not (string-prefix-p "*" name))
-                                  (memq buf project-buffers))))
-                         project-buffers))
+                            (project--buffer-check buf project-kill-buffer-conditions))
+                          project-buffers))
              (buffer-to-kill
               (if arg
                   (current-buffer)
                 ;; Use the already-filtered list for completion
-                (get-buffer 
+                (get-buffer
                  (completing-read "Kill buffer: "
                                  (mapcar #'buffer-name filtered-project-buffers)
                                  nil t nil nil
-                                 (buffer-name (current-buffer))))))
-             ;; Now compute other buffers from the SAME filtered list
-             (other-project-buffers
-              (seq-filter (lambda (buf)
-                           (not (eq buf buffer-to-kill)))
-                         filtered-project-buffers))
-             (target-buffer (car other-project-buffers)))
-        
+                                 (buffer-name (current-buffer)))))))
+
         ;; Handle the different cases
         (if arg
             ;; Prefix arg: kill all other project buffers
-            (when (yes-or-no-p (format "Kill %d other project buffers? "
-                                      (length other-project-buffers)))
-              (mapc #'kill-buffer other-project-buffers))
-          ;; No prefix: kill one and switch
-          (if target-buffer
-              (progn
+            (let ((other-project-buffers
+                   (seq-filter (lambda (buf)
+                                (not (eq buf buffer-to-kill)))
+                              filtered-project-buffers)))
+              (when (yes-or-no-p (format "Kill %d other project buffers? "
+                                        (length other-project-buffers)))
+                (mapc #'kill-buffer other-project-buffers)))
+
+          ;; No prefix: kill buffer FIRST, then determine where to switch
+          ;; This ensures cleanup hooks (like Eglot shutdown) run before we
+          ;; decide which buffer to switch to
+          (kill-buffer buffer-to-kill)
+
+          ;; Re-calculate remaining project buffers after kill + cleanup
+          (let* ((remaining-buffers
+                  (seq-filter (lambda (buf)
+                               (project--buffer-check buf project-kill-buffer-conditions))
+                             (project-buffers proj)))
+                 (target-buffer (car remaining-buffers)))
+
+            (if target-buffer
                 (switch-to-buffer target-buffer)
-                (kill-buffer buffer-to-kill))
-            ;; Last buffer in project
-            (let ((project-root (project-root proj)))
-              (kill-buffer buffer-to-kill)
-              (vc-dir project-root)
-              (project-switch-project project-root))))))))
+              ;; No buffers left in project
+              (let ((project-root (project-root proj)))
+                (vc-dir project-root)
+                (project-switch-project project-root)))))))))
+
+
 
 
 (defun mxns/tree-compile ()
@@ -246,6 +258,7 @@ If no project buffers remain, invoke `project-switch-project'."
     (define-key map "v" 'project-vc-dir)
     (define-key map "\C-b" 'project-list-buffers)
     (define-key map "k" 'mxns/kill-buffer-project-aware)
+    (define-key map "K" 'mxns/kill-other-project-buffers)
     ;; (define-key map "F" 'project-or-external-find-file)
     ;; (define-key map "G" 'project-or-external-find-regexp)
     map)
@@ -265,6 +278,7 @@ If no project buffers remain, invoke `project-switch-project'."
     "v" "VC directory"
     "C-b" "List buffers"
     "k" "Kill buffer (project)"
+    "K" "Kill other project buffers"
     )
 
 ;;; init-project.el ends here
