@@ -8,14 +8,17 @@
 (declare-function neo-global--window-exists-p "neotree")
 (declare-function project-root "treemacs" (project))
 
-(defun mxns/project-switch-project (project-path)
-  "Switch to the most recently used buffer belonging to PROJECT-PATH.
-If no buffer is found, fallback to opening the most recently used file
-in the project using `recentf'.
-If no recent file is found, fallback to user selection via
-`project-switch-project'p."
+(defun mxns/project-switch-project (&optional project-path)
+  "Switch to the most recently used buffer in the target project.
+If PROJECT-PATH is not provided, uses `project-current-directory-override'
+if set (when called via `project-switch-project'), otherwise prompts.
+
+Falls back through: recent buffer → recent file → project-switch-project."
   (interactive
-   (list (project-prompt-project-dir)))
+   (list (unless project-current-directory-override
+           (project-prompt-project-dir))))
+  (setq project-path (or project-current-directory-override
+                         project-path))
   (let* ((expanded-project-path (expand-file-name project-path))
          ;; Buffers in most-recently-used order
          (project-buffers (seq-filter
@@ -43,7 +46,9 @@ If no recent file is found, fallback to user selection via
             (progn
               (find-file most-recent-file)
               (message "Opened recent file: %s" most-recent-file))
-          (project-switch-project project-path)))))))
+          ;; No recent buffers or files - fallback to finding a file
+          (let ((default-directory expanded-project-path))
+            (project-find-file))))))))
 
 
 (defun mxns/project-kill-project (arg)
@@ -159,7 +164,10 @@ If no project buffers remain, invoke `project-switch-project'."
 (use-package project
   :ensure nil
   :bind-keymap
-  ("C-c p" . mxns/project-prefix-map))
+  ("C-c p" . mxns/project-prefix-map)
+  :custom
+  ;; Use our custom switch function that opens recent buffers/files
+  (project-switch-commands 'mxns/project-switch-project))
 
 
 (use-package neotree
@@ -244,7 +252,7 @@ If no project buffers remain, invoke `project-switch-project'."
 (defvar mxns/project-prefix-map
   (let ((map (make-sparse-keymap)))
     (define-key map "c" 'mxns/tree-compile)
-    (define-key map "a" 'mxns/project-switch-project)
+    (define-key map "p" 'project-switch-project)
     (define-key map "q" 'mxns/project-kill-project)
     (define-key map "k" 'mxns/kill-buffer-project-aware)
     (define-key map "f" 'consult-fd)
@@ -262,7 +270,7 @@ If no project buffers remain, invoke `project-switch-project'."
 
 (which-key-add-keymap-based-replacements mxns/project-prefix-map
     "c" "Compile"
-    "a" "Switch project"
+    "p" "Switch project"
     "q" "Kill project"
     "k" "Kill buffer"
     "f" "Find file (fd)"
