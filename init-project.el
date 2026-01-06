@@ -243,40 +243,36 @@ If no project buffers remain, invoke `project-switch-project'."
 
 (defvar mxns/project-prefix-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "c" 'mxns/tree-compile)
+    (define-key map "a" 'mxns/project-switch-project)
+    (define-key map "q" 'mxns/project-kill-project)
+    (define-key map "k" 'mxns/kill-buffer-project-aware)
     (define-key map "f" 'consult-fd)
     (define-key map "g" 'consult-ripgrep)
-    (define-key map "a" 'mxns/project-switch-project)
-    (define-key map "c" 'mxns/tree-compile)
-    (define-key map "q" 'mxns/project-kill-project)
     (define-key map "r" 'project-query-replace-regexp)
     (define-key map "b" 'project-switch-to-buffer)
-    (define-key map "p" 'project-switch-project)
     (define-key map "d" 'project-find-dir)
     (define-key map "D" 'project-dired)
     (define-key map "v" 'project-vc-dir)
     (define-key map "\C-b" 'project-list-buffers)
-    (define-key map "k" 'mxns/kill-buffer-project-aware)
-    (define-key map "K" 'mxns/kill-other-project-buffers)
     ;; (define-key map "F" 'project-or-external-find-file)
     ;; (define-key map "G" 'project-or-external-find-regexp)
     map)
   "Keymap for project commands.")
 
 (which-key-add-keymap-based-replacements mxns/project-prefix-map
+    "c" "Compile"
+    "a" "Switch project"
+    "q" "Kill project"
+    "k" "Kill buffer"
     "f" "Find file (fd)"
     "g" "Grep (rg)"
-    "a" "Switch project"
-    "c" "Compile"
-    "q" "Kill project"
     "r" "Query replace regexp"
     "b" "Switch to buffer"
-    "p" "Open project"
     "d" "Find directory"
     "D" "Open in Dired"
     "v" "VC directory"
     "C-b" "List buffers"
-    "k" "Kill buffer (project)"
-    "K" "Kill other project buffers"
     )
 
 ;;; init-project.el ends here
