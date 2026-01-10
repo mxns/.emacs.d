@@ -46,6 +46,7 @@
 (setq-default indent-tabs-mode nil)
 (setq suggest-key-bindings nil)
 (setq delete-by-moving-to-trash t)
+(setq compilation-scroll-output 'first-error)
 
 ;; (show-paren-mode 1)
 ;; (setq match-paren--idle-timer
@@ -117,6 +118,21 @@ With universal argument ARG, use current configuration."
     (save-excursion
       (with-silent-modifications
         (ansi-color-apply-on-region (point-min) (point-max))))))
+
+
+(defvar mxns/magit-prefix-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "m" 'magit-project-status)
+    (define-key map "d" 'magit-diff-buffer-file)
+    (define-key map "s" 'magit-file-stage)
+    map)
+  "Keymap for magit commands.")
+
+(which-key-add-keymap-based-replacements mxns/magit-prefix-map
+    "m" "Status"
+    "d" "Diff"
+    "s" "Stage"
+    )
 
 
 ;; (use-package ranger)
@@ -304,7 +320,8 @@ With universal argument ARG, use current configuration."
 
 
 (use-package magit
-  :bind ("C-c m" . magit-status))
+  :bind-keymap
+  ("C-c m" . mxns/magit-prefix-map))
 
 
 (use-package yasnippet

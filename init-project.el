@@ -122,21 +122,24 @@ If no project buffers remain, invoke `project-switch-project'."
           ;; No prefix: kill buffer FIRST, then determine where to switch
           ;; This ensures cleanup hooks (like Eglot shutdown) run before we
           ;; decide which buffer to switch to
-          (kill-buffer buffer-to-kill)
+          ;; (kill-buffer buffer-to-kill)
 
           ;; Re-calculate remaining project buffers after kill + cleanup
           (let* ((remaining-buffers
                   (seq-filter (lambda (buf)
-                               (project--buffer-check buf project-kill-buffer-conditions))
-                             (project-buffers proj)))
+                                (and (project--buffer-check buf project-kill-buffer-conditions)
+                                     (buffer-file-name buf)
+                                     (not (eq buf buffer-to-kill))))
+                              (project-buffers proj)))
                  (target-buffer (car remaining-buffers)))
 
             (if target-buffer
-                (switch-to-buffer target-buffer)
+                (progn (switch-to-buffer target-buffer)
+                       (kill-buffer buffer-to-kill))
               ;; No buffers left in project
               (let ((project-root (project-root proj)))
-                (vc-dir project-root)
-                (project-switch-project project-root)))))))))
+                (project-find-file)
+                (kill-buffer buffer-to-kill)))))))))
 
 
 
