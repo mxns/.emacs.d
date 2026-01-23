@@ -60,8 +60,9 @@
 (setq custom-file "~/.emacs.d/custom.el")
 (when (file-exists-p custom-file)
   (load custom-file 'noerror 'nomessage))
+(load "~/.emacs.d/prosecco")
 (load "~/.emacs.d/init-nav")
-(load "~/.emacs.d/init-project")
+(load "~/.emacs.d/init-neotree")
 (load "~/.emacs.d/init-sql-client")
 (load "~/.emacs.d/init-eglot")
 (xterm-mouse-mode 1)
@@ -133,6 +134,60 @@ With universal argument ARG, use current configuration."
     "d" "Diff"
     "s" "Stage"
     )
+
+
+(defvar mxns/project-prefix-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "c" 'mxns/tree-compile)
+    (define-key map "p" 'prosecco-switch-project)
+    (define-key map "q" 'prosecco-kill-project)
+    (define-key map "k" 'prosecco-kill-buffer)
+    (define-key map "f" 'consult-fd)
+    (define-key map "g" 'consult-ripgrep)
+    (define-key map "r" 'project-query-replace-regexp)
+    (define-key map "b" 'project-switch-to-buffer)
+    (define-key map "d" 'project-find-dir)
+    (define-key map "D" 'project-dired)
+    (define-key map "v" 'project-vc-dir)
+    (define-key map "\C-b" 'project-list-buffers)
+    ;; (define-key map "F" 'project-or-external-find-file)
+    ;; (define-key map "G" 'project-or-external-find-regexp)
+    map)
+  "Keymap for project commands.")
+
+(which-key-add-keymap-based-replacements mxns/project-prefix-map
+    "c" "Compile"
+    "p" "Switch project"
+    "q" "Kill project"
+    "k" "Kill buffer"
+    "f" "Find file (fd)"
+    "g" "Grep (rg)"
+    "r" "Query replace regexp"
+    "b" "Switch to buffer"
+    "d" "Find directory"
+    "D" "Open in Dired"
+    "v" "VC directory"
+    "C-b" "List buffers"
+    )
+
+
+;; Mark variable as safe when it's a list of strings
+(put 'mxns/tree-compile-commands 'safe-local-variable
+     (lambda (val)
+       (and (listp val)
+            (seq-every-p #'stringp val))))
+
+(defun mxns/tree-compile ()
+  "Choose and run a compile command for current project."
+  (interactive)
+  (if (boundp 'mxns/tree-compile-commands)
+      (let ((cmd (completing-read
+                  "Compile command: "
+                  mxns/tree-compile-commands
+                  nil nil nil nil
+                  (car mxns/tree-compile-commands))))
+        (compile cmd))
+    (call-interactively 'compile)))  ; Fallback to normal compile
 
 
 ;; (use-package ranger)
@@ -317,6 +372,15 @@ With universal argument ARG, use current configuration."
          ("C-c v t" . vimish-fold-toggle)
          ("C-c v d" . vimish-fold-delete)
          ("C-c v D" . vimish-fold-delete-all)))
+
+
+(use-package project
+  :ensure nil
+  :bind-keymap
+  ("C-c p" . mxns/project-prefix-map)
+  :custom
+  ;; Use our custom switch function that opens recent buffers/files
+  (project-switch-commands 'prosecco-switch-project))
 
 
 (use-package magit
