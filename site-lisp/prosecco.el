@@ -1,11 +1,42 @@
 ;;; prosecco.el --- minimal overlay on the `project' package -*- lexical-binding: t; -*-
 
+;; Author: Your Name <your@email.com>
+;; Version: 0.1.0
+;; Package-Requires: ((emacs "29.1"))
+;; Keywords: convenience, project
+;; URL: https://github.com/username/prosecco
+
 ;;; Commentary:
+
+;; Prosecco provides project-aware buffer management commands that integrate
+;; with Emacs' built-in `project' package.  It offers smarter buffer switching,
+;; killing, and window management that prefers buffers from the current project.
+;;
+;; Features:
+;; - `prosecco-switch-to-buffer': Switch to project buffers or orphan buffers
+;; - `prosecco-kill-buffer': Kill buffer with project-aware completion
+;; - `prosecco-bury-buffer': Bury buffer, preferring project buffers next
+;; - `prosecco-quit-window': Quit window with project-aware buffer selection
+;; - `prosecco-switch-project': Switch to most recent buffer in a project
+;; - `prosecco-kill-project': Kill project buffers (with prefix: other projects)
+;; - Mode-line indicator showing current project name
+;;
+;; Enable `prosecco-mode' to remap standard buffer commands to their
+;; prosecco equivalents.
 
 ;;; Code:
 
-(defvar recentf-list)
+(require 'project)
 
+(defvar recentf-list)
+(defvar project-current-directory-override)
+(defvar project-kill-buffer-conditions)
+(defvar project-ignore-buffer-conditions)
+
+(defgroup prosecco nil
+  "Project-aware buffer management."
+  :group 'project
+  :prefix "prosecco-")
 
 (defun prosecco-mode-line ()
   "Return project name for mode-line."
@@ -17,9 +48,8 @@
                 (directory-file-name (project-root project)))
                "]")
        'face 'font-lock-keyword-face))))
-(add-to-list 'mode-line-misc-info '(:eval (prosecco-mode-line)) t)
 
-
+;;;###autoload
 (defun prosecco-switch-project (&optional project-path)
   "Switch to the most recently used buffer in the target project.
 If PROJECT-PATH is not provided, uses `project-current-directory-override'
@@ -53,7 +83,7 @@ Falls back through: recent buffer → recent file → projectfind-file."
                                   (expand-file-name file)))
                recentf-list))
              (most-recent-file (car recent-files-in-project)))
-        
+
         (if most-recent-file
             (progn
               (find-file most-recent-file)
@@ -62,11 +92,13 @@ Falls back through: recent buffer → recent file → projectfind-file."
           (let ((default-directory expanded-project-path))
             (project-find-file))))))))
 
-
+;;;###autoload
 (defun prosecco-kill-project (arg)
-  "Kill the buffers belonging to the current project. Only the buffers that match a condition in
-`project-kill-buffer-conditions' will be killed. With the prefix argument, kill the buffers belonging
-to all other projects instead, using the same conditions."
+  "Kill the buffers belonging to the current project.
+Only the buffers that match a condition in
+`project-kill-buffer-conditions' will be killed.  With the prefix
+argument ARG, kill the buffers belonging to all other projects
+instead, using the same conditions."
   (interactive "P")
   (if arg
       (if-let ((current-proj (project-current)))
@@ -90,10 +122,10 @@ to all other projects instead, using the same conditions."
         (message "Not in a project"))
     (project-kill-buffers)))
 
-
+;;;###autoload
 (defun prosecco-kill-buffer (arg)
   "Kill buffer (with completion) and switch to most recent buffer in same project.
-With prefix argument, kill all other project buffers instead.
+With prefix argument ARG, kill all other project buffers instead.
 If no project buffers remain, invoke `project-find-file'."
   (interactive "P")
   (let* ((proj (project-current)))
@@ -101,8 +133,8 @@ If no project buffers remain, invoke `project-find-file'."
         ;; Not in a project - simple kill
         (kill-buffer (if arg
                         (current-buffer)
-                      (get-buffer (read-buffer "Kill buffer: " 
-                                              (current-buffer) 
+                      (get-buffer (read-buffer "Kill buffer: "
+                                              (current-buffer)
                                               t))))
       ;; In a project - compute filtered buffers ONCE at the start
       (let* ((project-buffers (project-buffers proj))
@@ -143,14 +175,15 @@ If no project buffers remain, invoke `project-find-file'."
                 (progn (switch-to-buffer target-buffer)
                        (kill-buffer buffer-to-kill))
               ;; No buffers left in project
-              (let ((project-root (project-root proj)))
+              (let ((default-directory (project-root proj)))
                 (project-find-file)
                 (kill-buffer buffer-to-kill)))))))))
 
-
+;;;###autoload
 (defun prosecco-switch-to-buffer (buffer-or-name)
   "Switch to a buffer from current project or one not belonging to any project.
-If not in a project, falls back to standard `switch-to-buffer'."
+If not in a project, falls back to standard `switch-to-buffer'.
+BUFFER-OR-NAME is the buffer to switch to."
   (interactive (list (prosecco--read-project-or-orphan-buffer)))
   (switch-to-buffer buffer-or-name))
 
@@ -208,12 +241,12 @@ Returns nil if no suitable buffer found."
                     (buffer-list))))
     (or next-project-buf next-orphan-buf)))
 
-
+;;;###autoload
 (defun prosecco-bury-buffer ()
   "Bury current buffer and switch to next project buffer, or orphan if none.
 If not in a project, falls back to standard `bury-buffer'.
 Project buffers are preferred; orphan buffers (those not belonging to any
-project) are used as fallback. Both respect `project-ignore-buffer-conditions'."
+project) are used as fallback.  Both respect `project-ignore-buffer-conditions'."
   (interactive)
   (let ((pr (project-current)))
     (if (not pr)
@@ -226,10 +259,10 @@ project) are used as fallback. Both respect `project-ignore-buffer-conditions'."
               (bury-buffer current))
           (bury-buffer))))))
 
-
+;;;###autoload
 (defun prosecco-quit-window (&optional kill window)
   "Quit WINDOW, using prosecco buffer selection when in a project.
-WINDOW defaults to the selected window. With prefix argument KILL,
+WINDOW defaults to the selected window.  With prefix argument KILL,
 kill the buffer instead of burying it.
 
 When in a project, prefers showing project buffers, then orphan buffers.
@@ -271,18 +304,25 @@ Dedicated windows are deleted when possible, preserving standard behavior."
               ;; No suitable buffer - fall back to standard
               (quit-restore-window window (if kill 'kill 'bury))))))))))
 
-
+;;;###autoload
 (define-minor-mode prosecco-mode
   "Minor mode for project-aware buffer management.
 Remaps standard buffer commands to prosecco equivalents that prefer
-project buffers, with orphan buffers as fallback."
+project buffers, with orphan buffers as fallback.
+
+When enabled, adds a mode-line indicator showing the current project name."
   :global t
+  :group 'prosecco
   :keymap
   (let ((map (make-sparse-keymap)))
     (keymap-set map "C-x b" #'prosecco-switch-to-buffer)
     (keymap-set map "C-x k" #'prosecco-kill-buffer)
     (keymap-set map "<remap> <quit-window>" #'prosecco-quit-window)
-    map))
+    map)
+  (if prosecco-mode
+      (add-to-list 'mode-line-misc-info '(:eval (prosecco-mode-line)) t)
+    (setq mode-line-misc-info
+          (delete '(:eval (prosecco-mode-line)) mode-line-misc-info))))
 
-
+(provide 'prosecco)
 ;;; prosecco.el ends here

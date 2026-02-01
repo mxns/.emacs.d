@@ -60,7 +60,6 @@
 (setq custom-file "~/.emacs.d/custom.el")
 (when (file-exists-p custom-file)
   (load custom-file 'noerror 'nomessage))
-(load "~/.emacs.d/prosecco")
 (load "~/.emacs.d/init-nav")
 (load "~/.emacs.d/init-neotree")
 (load "~/.emacs.d/init-sql-client")
@@ -374,13 +373,21 @@ With universal argument ARG, use current configuration."
          ("C-c v D" . vimish-fold-delete-all)))
 
 
-(use-package project
-  :ensure nil
+;; (use-package project
+;;   :ensure nil
+;;   :bind-keymap
+;;   ("C-c p" . mxns/project-prefix-map)
+;;   :custom
+;;   ;; Use our custom switch function that opens recent buffers/files
+;;   (project-switch-commands 'prosecco-switch-project))
+
+
+(use-package prosecco
+  :load-path "~/.emacs.d/site-lisp/"
   :bind-keymap
   ("C-c p" . mxns/project-prefix-map)
-  :custom
-  ;; Use our custom switch function that opens recent buffers/files
-  (project-switch-commands 'prosecco-switch-project))
+  :config
+  (prosecco-mode 1))
 
 
 (use-package magit
