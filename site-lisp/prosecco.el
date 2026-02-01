@@ -180,11 +180,15 @@ If no project buffers remain, invoke `project-find-file'."
                 (kill-buffer buffer-to-kill)))))))))
 
 ;;;###autoload
-(defun prosecco-switch-to-buffer (buffer-or-name)
+(defun prosecco-switch-to-buffer (buffer-or-name &optional _arg)
   "Switch to a buffer from current project or one not belonging to any project.
 If not in a project, falls back to standard `switch-to-buffer'.
+With prefix argument ARG, use standard `switch-to-buffer' unconditionally.
 BUFFER-OR-NAME is the buffer to switch to."
-  (interactive (list (prosecco--read-project-or-orphan-buffer)))
+  (interactive
+   (if current-prefix-arg
+       (list (read-buffer "Switch to buffer: " (other-buffer (current-buffer))) t)
+     (list (prosecco--read-project-or-orphan-buffer) nil)))
   (switch-to-buffer buffer-or-name))
 
 
