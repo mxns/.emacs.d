@@ -148,19 +148,141 @@ If no project buffers remain, invoke `project-find-file'."
                 (kill-buffer buffer-to-kill)))))))))
 
 
-(defun prosecco-mode-line ()
-  "Return project name for mode-line."
-  (let ((project (project-current)))
-    (when project
-      (propertize
-       (concat " ["
-               (file-name-nondirectory
-                (directory-file-name (project-root project)))
-               "]")
-       'face 'font-lock-keyword-face))))
+(defun prosecco-switch-to-buffer (buffer-or-name)
+  "Switch to a buffer from current project or one not belonging to any project.
+If not in a project, falls back to standard `switch-to-buffer'."
+  (interactive (list (prosecco--read-project-or-orphan-buffer)))
+  (switch-to-buffer buffer-or-name))
 
-;; Add to mode-line-misc-info
-(add-to-list 'mode-line-misc-info '(:eval (mxns/project-mode-line)) t)
+
+(defun prosecco--read-project-or-orphan-buffer ()
+  "Read a buffer belonging to current project or no project at all.
+If not in a project, falls back to standard `read-buffer'."
+  (let ((pr (project-current)))
+    (if (not pr)
+        (read-buffer "Switch to buffer: " (other-buffer (current-buffer)) nil)
+      (let* ((current-buffer (current-buffer))
+             (other-buffer (other-buffer current-buffer))
+             (other-name (buffer-name other-buffer))
+             (project-bufs (project-buffers pr))
+             (predicate
+              (lambda (buffer)
+                ;; BUFFER is (BUF-NAME . BUF-OBJ)
+                (let ((buf (cdr buffer)))
+                  (and (not (project--buffer-check buf project-ignore-buffer-conditions))
+                       (or (memq buf project-bufs)
+                           ;; Buffer belongs to no project
+                           (null (with-current-buffer buf
+                                   (project-current nil))))))))
+             (buffer (read-buffer
+                      "Switch to buffer: "
+                      (when (funcall predicate (cons other-name other-buffer))
+                        other-name)
+                      nil
+                      predicate)))
+        (if (or (get-buffer buffer)
+                (file-in-directory-p default-directory (project-root pr)))
+            buffer
+          (let ((default-directory (project-root pr)))
+            (get-buffer-create buffer)))))))
+
+
+(defun prosecco--next-project-or-orphan-buffer (exclude-buffer project)
+  "Find next buffer to show, excluding EXCLUDE-BUFFER.
+Prefers PROJECT buffers, then orphan buffers (no project).
+Returns nil if no suitable buffer found."
+  (let* ((project-bufs (project-buffers project))
+         (valid-buf-p
+          (lambda (buf)
+            (and (not (eq buf exclude-buffer))
+                 (not (project--buffer-check buf project-ignore-buffer-conditions)))))
+         (next-project-buf
+          (seq-find (lambda (buf)
+                      (and (funcall valid-buf-p buf)
+                           (memq buf project-bufs)))
+                    (buffer-list)))
+         (next-orphan-buf
+          (seq-find (lambda (buf)
+                      (and (funcall valid-buf-p buf)
+                           (null (with-current-buffer buf (project-current nil)))))
+                    (buffer-list))))
+    (or next-project-buf next-orphan-buf)))
+
+
+(defun prosecco-bury-buffer ()
+  "Bury current buffer and switch to next project buffer, or orphan if none.
+If not in a project, falls back to standard `bury-buffer'.
+Project buffers are preferred; orphan buffers (those not belonging to any
+project) are used as fallback. Both respect `project-ignore-buffer-conditions'."
+  (interactive)
+  (let ((pr (project-current)))
+    (if (not pr)
+        (bury-buffer)
+      (let* ((current (current-buffer))
+             (next-buf (prosecco--next-project-or-orphan-buffer current pr)))
+        (if next-buf
+            (progn
+              (switch-to-buffer next-buf)
+              (bury-buffer current))
+          (bury-buffer))))))
+
+
+(defun prosecco-quit-window (&optional kill window)
+  "Quit WINDOW, using prosecco buffer selection when in a project.
+WINDOW defaults to the selected window. With prefix argument KILL,
+kill the buffer instead of burying it.
+
+When in a project, prefers showing project buffers, then orphan buffers.
+When not in a project, falls back to standard `quit-window'.
+Dedicated windows are deleted when possible, preserving standard behavior."
+  (interactive "P")
+  (setq window (or window (selected-window)))
+  (let* ((buffer (window-buffer window))
+         (pr (with-current-buffer buffer (project-current))))
+    (if (not pr)
+        ;; Not in a project - standard behavior
+        (quit-window kill window)
+      ;; In a project - custom buffer selection
+      (with-current-buffer buffer
+        (run-hooks 'quit-window-hook))
+      (let ((dedicated (window-dedicated-p window)))
+        (cond
+         ;; Try to delete dedicated windows (not side windows)
+         ((and dedicated (not (eq dedicated 'side))
+               (window--delete window 'dedicated kill))
+          ;; Window was deleted, handle buffer
+          (if kill
+              (kill-buffer buffer)
+            (bury-buffer buffer)))
+         ;; Window survives - use our buffer selection
+         (t
+          (let ((next-buf (prosecco--next-project-or-orphan-buffer buffer pr)))
+            (if next-buf
+                (progn
+                  (set-window-buffer window next-buf)
+                  ;; Clear quit-restore since we're taking over
+                  (set-window-parameter window 'quit-restore nil)
+                  ;; Restore side dedication if needed
+                  (when (eq dedicated 'side)
+                    (set-window-dedicated-p window 'side))
+                  (if kill
+                      (kill-buffer buffer)
+                    (bury-buffer buffer)))
+              ;; No suitable buffer - fall back to standard
+              (quit-restore-window window (if kill 'kill 'bury))))))))))
+
+
+(define-minor-mode prosecco-mode
+  "Minor mode for project-aware buffer management.
+Remaps standard buffer commands to prosecco equivalents that prefer
+project buffers, with orphan buffers as fallback."
+  :global t
+  :keymap
+  (let ((map (make-sparse-keymap)))
+    (keymap-set map "C-x b" #'prosecco-switch-to-buffer)
+    (keymap-set map "C-x k" #'prosecco-kill-buffer)
+    (keymap-set map "<remap> <quit-window>" #'prosecco-quit-window)
+    map))
 
 
 ;;; prosecco.el ends here

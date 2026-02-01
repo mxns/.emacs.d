@@ -145,7 +145,7 @@ With universal argument ARG, use current configuration."
     (define-key map "f" 'consult-fd)
     (define-key map "g" 'consult-ripgrep)
     (define-key map "r" 'project-query-replace-regexp)
-    (define-key map "b" 'project-switch-to-buffer)
+    (define-key map "b" 'prosecco-switch-to-buffer)
     (define-key map "d" 'project-find-dir)
     (define-key map "D" 'project-dired)
     (define-key map "v" 'project-vc-dir)
